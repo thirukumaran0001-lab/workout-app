@@ -29,7 +29,7 @@ export default function ExerciseLibraryView({ exercises, onAddExercise }) {
     <div className="w-full max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
       
       {/* Add New Exercise Form */}
-      <div className="md:col-span-1 bg-[#09090b]/60 border border-dark-border rounded-3xl p-6 shadow-2xl h-fit hover-card-glow">
+      <div className="md:col-span-1 bg-[#0a0a0c]/60 border border-dark-border rounded-3xl p-6 shadow-2xl h-fit hover-card-glow">
         <div className="flex items-center space-x-2.5 border-b border-dark-border pb-3.5 mb-4">
           <Dumbbell className="w-4 h-4 text-zinc-400" />
           <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-200 font-mono">Register Exercise</h2>
@@ -66,8 +66,8 @@ export default function ExerciseLibraryView({ exercises, onAddExercise }) {
             disabled={isSuccess}
             className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center space-x-2 transition-premium cursor-pointer ${
               isSuccess 
-                ? 'bg-emerald-500 text-zinc-950' 
-                : 'bg-gradient-to-r from-slate-200 via-zinc-100 to-slate-300 hover:from-white hover:to-white text-zinc-950 shadow-lg shadow-white/5 active:scale-95'
+                ? 'bg-brand-accent text-zinc-950 border border-brand-accent' 
+                : 'bg-zinc-950 hover:bg-zinc-900 text-brand-accent border border-brand-accent/40 hover:border-brand-accent shadow-lg shadow-brand-accent/5 active:scale-95'
             }`}
           >
             {isSuccess ? (
@@ -100,11 +100,11 @@ export default function ExerciseLibraryView({ exercises, onAddExercise }) {
             return (
               <div 
                 key={muscleGroup} 
-                className="bg-[#09090b]/60 border border-dark-border rounded-3xl p-5 flex flex-col space-y-3 hover-card-glow"
+                className="bg-[#0a0a0c]/60 border border-dark-border rounded-3xl p-5 flex flex-col space-y-3 hover-card-glow"
               >
                 <div className="flex items-center justify-between border-b border-zinc-800/60 pb-2">
                   <span className="text-xs font-bold text-zinc-200 uppercase tracking-wide">{muscleGroup}</span>
-                  <span className="text-[10px] text-zinc-400 bg-zinc-950 border border-zinc-800 px-2.5 py-0.5 rounded-xl font-mono">
+                  <span className="text-[10px] text-zinc-400 bg-zinc-950 border border-dark-border px-2.5 py-0.5 rounded-xl font-mono">
                     {list.length}
                   </span>
                 </div>
@@ -114,7 +114,7 @@ export default function ExerciseLibraryView({ exercises, onAddExercise }) {
                       key={ex.id} 
                       className="text-xs text-zinc-400 hover:text-zinc-200 flex items-center space-x-2 py-1 transition-colors"
                     >
-                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-brand-accent/60" />
                       <span>{ex.name}</span>
                     </li>
                   ))}

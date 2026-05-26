@@ -11,8 +11,7 @@ import HistoryView from './components/HistoryView';
 import ExerciseLibraryView from './components/ExerciseLibraryView';
 
 export default function App() {
-  // Navigation
-  const [activeTab, setActiveTab] = useState('home'); // home, workout, analytics, history, exercises
+
 
   // Catalog & History
   const [exercisesCatalog, setExercisesCatalog] = useState([]);
@@ -389,7 +388,6 @@ export default function App() {
     setSessionActive(true);
     setSessionElapsed(0);
     localStorage.removeItem('telemetry_elapsed');
-    setActiveTab('workout');
     
     const payload = {
       name: routineName,
@@ -537,122 +535,42 @@ export default function App() {
     : strokeDash;
 
   return (
-    <div className="min-h-screen bg-dark-bg text-zinc-100 font-sans flex flex-col md:flex-row pb-16 md:pb-0">
+    <div className="min-h-screen bg-dark-bg text-zinc-100 font-sans bg-stealth-grid flex flex-col pb-6">
       
-      {/* Sidebar Navigation */}
-      <aside className="hidden md:flex flex-col w-68 bg-[#09090b]/40 backdrop-blur-2xl border-r border-dark-border p-6 space-y-8 flex-shrink-0 z-10">
-        <div>
-          <div className="flex items-center space-x-2.5 text-white">
-            <div className="p-2 bg-brand-primary/10 border border-brand-primary/20 rounded-xl">
-              <Sparkles className="w-5 h-5 text-brand-primary animate-pulse" />
-            </div>
-            <div>
-              <span className="font-display font-black text-sm tracking-widest bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent">
-                STRONGSPLIT
-              </span>
-              <p className="text-[8px] text-zinc-500 font-mono tracking-widest uppercase mt-0.5">TELEMETRY PLATFORM</p>
-            </div>
+      {/* Top Header */}
+      <header className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 py-5 border-b border-dark-border mb-6 flex justify-between items-center z-10">
+        <div className="flex items-center space-x-2.5 text-white">
+          <div className="p-2 bg-brand-accent/10 border border-brand-accent/20 rounded-xl">
+            <Sparkles className="w-5 h-5 text-brand-accent" />
+          </div>
+          <div>
+            <span className="font-display font-black text-sm tracking-widest bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent">
+              STRONGSPLIT
+            </span>
+            <p className="text-[8px] text-zinc-500 font-mono tracking-widest uppercase mt-0.5">TELEMETRY PLATFORM</p>
           </div>
         </div>
-
-        <nav className="flex flex-col space-y-1.5">
-          <button 
-            onClick={() => setActiveTab('home')}
-            className={`w-full py-3 px-4 rounded-xl flex items-center space-x-3 text-xs font-bold uppercase tracking-wider transition-premium border ${
-              activeTab === 'home' 
-                ? 'bg-brand-primary/10 border-brand-primary/20 text-brand-primary shadow-md shadow-brand-primary/5' 
-                : 'border-transparent text-zinc-400 hover:bg-zinc-900/40 hover:text-zinc-200'
-            }`}
-          >
-            <Sparkles className="w-4 h-4 text-brand-primary animate-pulse" />
-            <span>Dashboard Grid</span>
-          </button>
-          <button 
-            onClick={() => setActiveTab('workout')}
-            className={`w-full py-3 px-4 rounded-xl flex items-center space-x-3 text-xs font-bold uppercase tracking-wider transition-premium border ${
-              activeTab === 'workout' 
-                ? 'bg-brand-primary/10 border-brand-primary/20 text-brand-primary shadow-md shadow-brand-primary/5' 
-                : 'border-transparent text-zinc-400 hover:bg-zinc-900/40 hover:text-zinc-200'
-            }`}
-          >
-            <Play className="w-4 h-4 text-brand-secondary" />
-            <span>Telemetry Input</span>
-          </button>
-          
-          <button 
-            onClick={() => setActiveTab('analytics')}
-            className={`w-full py-3 px-4 rounded-xl flex items-center space-x-3 text-xs font-bold uppercase tracking-wider transition-premium border ${
-              activeTab === 'analytics' 
-                ? 'bg-brand-primary/10 border-brand-primary/20 text-brand-primary shadow-md shadow-brand-primary/5' 
-                : 'border-transparent text-zinc-400 hover:bg-zinc-900/40 hover:text-zinc-200'
-            }`}
-          >
-            <BarChart2 className="w-4 h-4 text-brand-accent" />
-            <span>Analysis Matrix</span>
-          </button>
-
-          <button 
-            onClick={() => setActiveTab('history')}
-            className={`w-full py-3 px-4 rounded-xl flex items-center space-x-3 text-xs font-bold uppercase tracking-wider transition-premium border ${
-              activeTab === 'history' 
-                ? 'bg-brand-primary/10 border-brand-primary/20 text-brand-primary shadow-md shadow-brand-primary/5' 
-                : 'border-transparent text-zinc-400 hover:bg-zinc-900/40 hover:text-zinc-200'
-            }`}
-          >
-            <Calendar className="w-4 h-4 text-emerald-400" />
-            <span>Telemetry Logs</span>
-          </button>
-
-          <button 
-            onClick={() => setActiveTab('exercises')}
-            className={`w-full py-3 px-4 rounded-xl flex items-center space-x-3 text-xs font-bold uppercase tracking-wider transition-premium border ${
-              activeTab === 'exercises' 
-                ? 'bg-brand-primary/10 border-brand-primary/20 text-brand-primary shadow-md shadow-brand-primary/5' 
-                : 'border-transparent text-zinc-400 hover:bg-zinc-900/40 hover:text-zinc-200'
-            }`}
-          >
-            <Dumbbell className="w-4 h-4 text-amber-400" />
-            <span>Library Index</span>
-          </button>
-        </nav>
-
-        {/* Global Live Session Telemetry Panel */}
-        {sessionActive && (
-          <div className="mt-auto glass-panel rounded-2xl p-4 flex flex-col space-y-2.5 border-brand-primary/10">
-            <div className="flex justify-between items-center">
-              <span className="text-[9px] text-emerald-400 font-mono font-bold uppercase tracking-wider animate-pulse flex items-center space-x-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                <span>LINK ACTIVE</span>
-              </span>
-              <span className="font-mono font-bold text-xs text-white">{formatTimeHHMMSS(sessionElapsed)}</span>
-            </div>
-            <p className="text-[11px] text-zinc-400 font-bold truncate">{sessionName}</p>
-          </div>
-        )}
-      </aside>
+        <div className="flex items-center space-x-4">
+          <span className="text-[9px] text-zinc-500 font-mono uppercase tracking-wider">
+            {sessionActive ? "TRACKING ACTIVE SESSION" : "SYSTEM CALIBRATED"}
+          </span>
+          {sessionActive && (
+            <span className="font-mono font-bold text-xs text-brand-accent animate-pulse bg-brand-accent/10 border border-brand-accent/20 px-2.5 py-1 rounded-xl">
+              {formatTimeHHMMSS(sessionElapsed)}
+            </span>
+          )}
+        </div>
+      </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full z-10">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 z-10">
         
-        {/* Mobile Header */}
-        <header className="flex md:hidden justify-between items-center pb-4 border-b border-dark-border mb-6">
-          <div className="flex items-center space-x-2 text-brand-primary">
-            <Sparkles className="w-4 h-4 text-brand-primary animate-pulse" />
-            <span className="font-display font-black text-xs tracking-wider bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent">STRONGSPLIT</span>
-          </div>
-          <span className="text-[9px] text-zinc-500 font-mono">STATUS: CALIBRATED</span>
-        </header>
-
-        {/* Tabs Router */}
-        {activeTab === 'home' && (
+        {!sessionActive ? (
           <HomeDashboardView 
             workouts={workoutsHistory} 
             onStartRoutine={handleStartRoutine} 
-            setActiveTab={setActiveTab} 
           />
-        )}
-
-        {activeTab === 'workout' && (
+        ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
             
             {/* Exercises Log Panel */}
@@ -682,7 +600,7 @@ export default function App() {
                       className={`py-2.5 px-4 rounded-2xl font-bold text-xs uppercase tracking-wider flex items-center space-x-2 transition-premium cursor-pointer ${
                         sessionActive 
                           ? 'bg-zinc-900 border-zinc-800 text-zinc-200' 
-                          : 'bg-gradient-to-r from-brand-primary to-violet-600 text-white font-extrabold shadow-lg shadow-brand-primary/20 active:scale-95'
+                          : 'bg-zinc-950 hover:bg-zinc-900 text-brand-accent border border-brand-accent/40 hover:border-brand-accent font-bold shadow-lg shadow-brand-accent/5 active:scale-95'
                       }`}
                     >
                       {sessionActive ? (
@@ -709,7 +627,7 @@ export default function App() {
                     <div className="border-t border-dark-border pt-3">
                       <div className="w-full bg-zinc-950 h-2 rounded-full overflow-hidden border border-zinc-900">
                         <div 
-                          className="bg-gradient-to-r from-brand-primary via-brand-accent to-emerald-500 h-full transition-premium duration-500 ease-out"
+                          className="bg-gradient-to-r from-brand-secondary via-brand-accent to-[#ffffff] h-full transition-premium duration-500 ease-out"
                           style={{ width: `${pctDone}%` }}
                         />
                       </div>
@@ -799,7 +717,7 @@ export default function App() {
 
                       <button 
                         onClick={() => removeExerciseFromLiveSession(exercise.id)}
-                        className="text-zinc-500 hover:text-rose-400 transition-colors p-1.5 hover:bg-rose-950/20 rounded-xl cursor-pointer"
+                        className="text-zinc-500 hover:text-red-400 transition-colors p-1.5 hover:bg-red-950/20 rounded-xl cursor-pointer"
                         title="Eject Exercise"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -814,7 +732,7 @@ export default function App() {
                           onClick={() => setSubTab(tab)}
                           className={`py-1.5 px-3 rounded-lg transition-premium cursor-pointer ${
                             activeSubTab === tab 
-                              ? 'bg-zinc-900 border border-zinc-800 text-brand-primary' 
+                              ? 'bg-zinc-900 border border-zinc-800 text-brand-accent' 
                               : 'text-zinc-500 hover:text-zinc-300'
                           }`}
                         >
@@ -841,7 +759,7 @@ export default function App() {
                             <div 
                               key={set.id} 
                               className={`grid grid-cols-12 gap-y-3 gap-x-2 items-center p-3 sm:p-1 rounded-2xl border border-zinc-900/60 sm:border-transparent transition-premium ${
-                                set.completed ? 'bg-emerald-500/5 border-emerald-500/10' : ''
+                                set.completed ? 'bg-[#c5a880]/5 border-[#c5a880]/10' : ''
                               }`}
                             >
                               {/* Set Index */}
@@ -859,10 +777,10 @@ export default function App() {
                                   const isSelected = (set.type || 'Normal') === tName;
                                   let btnColors = 'bg-zinc-950/20 border-zinc-900 text-zinc-500 hover:text-zinc-300';
                                   if (isSelected) {
-                                    if (tLetter === 'W') btnColors = 'bg-amber-500/15 border-amber-500/30 text-amber-400 font-extrabold';
-                                    if (tLetter === 'N') btnColors = 'bg-brand-primary/15 border-brand-primary/30 text-brand-primary font-extrabold';
+                                    if (tLetter === 'W') btnColors = 'bg-[#8c7853]/15 border-[#8c7853]/30 text-[#c5a880] font-extrabold';
+                                    if (tLetter === 'N') btnColors = 'bg-[#e4e4e7]/10 border-[#e4e4e7]/20 text-[#e4e4e7] font-extrabold';
                                     if (tLetter === 'D') btnColors = 'bg-brand-accent/15 border-brand-accent/30 text-brand-accent font-extrabold';
-                                    if (tLetter === 'F') btnColors = 'bg-rose-500/15 border-rose-500/30 text-rose-400 font-extrabold';
+                                    if (tLetter === 'F') btnColors = 'bg-[#991b1b]/15 border-[#991b1b]/30 text-[#ef4444] font-extrabold';
                                   }
                                   return (
                                     <button
@@ -941,7 +859,7 @@ export default function App() {
                                   onClick={() => toggleSetComplete(exercise.id, set.id)}
                                   className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-premium active:scale-75 cursor-pointer ${
                                     set.completed 
-                                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]' 
+                                      ? 'bg-brand-accent/15 border-brand-accent text-brand-accent shadow-[0_0_12px_rgba(197,168,128,0.25)]' 
                                       : 'bg-zinc-950 border-zinc-800 text-zinc-600 hover:text-zinc-400'
                                   }`}
                                 >
@@ -953,7 +871,7 @@ export default function App() {
                               <div className="col-span-1 flex justify-end sm:justify-center">
                                 <button 
                                   onClick={() => removeSetFromExercise(exercise.id, set.id)}
-                                  className="text-zinc-600 hover:text-rose-400 transition-colors cursor-pointer"
+                                  className="text-zinc-600 hover:text-red-400 transition-colors cursor-pointer"
                                 >
                                   <X className="w-3.5 h-3.5" />
                                 </button>
@@ -1005,38 +923,38 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* Mini SVG progression chart */}
-                        {historicalDataPoints.length > 1 && (
-                          <div className="space-y-1">
-                            <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-1">Historical Max progression</h4>
-                            <div className="bg-[#121214]/60 border border-dark-border p-3 rounded-2xl">
-                              <svg viewBox="0 0 400 100" className="w-full h-auto overflow-visible">
-                                <path
-                                  d={historicalDataPoints.map((pt, i) => {
-                                    const x = 30 + (i * 340) / (historicalDataPoints.length - 1);
-                                    const y = 80 - ((pt.val - 40) / 160) * 60; // scaled
-                                    return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
-                                  }).join(' ')}
-                                  fill="none"
-                                  stroke="#818cf8"
-                                  strokeWidth="2.5"
-                                  strokeLinecap="round"
-                                />
-                                {historicalDataPoints.map((pt, i) => {
-                                  const x = 30 + (i * 340) / (historicalDataPoints.length - 1);
-                                  const y = 80 - ((pt.val - 40) / 160) * 60;
-                                  return (
-                                    <g key={i}>
-                                      <circle cx={x} cy={y} r="3.5" fill="#030303" stroke="#818cf8" strokeWidth="2" />
-                                      <text x={x} y={y - 8} textAnchor="middle" fill="#06b6d4" fontSize="7" fontWeight="bold" className="font-mono">{pt.val}kg</text>
-                                      <text x={x} y="95" textAnchor="middle" fill="#71717a" fontSize="6" fontWeight="bold">{pt.date}</text>
-                                    </g>
-                                  );
-                                })}
-                              </svg>
-                            </div>
-                          </div>
-                        )}
+                         {/* Mini SVG progression chart */}
+                         {historicalDataPoints.length > 1 && (
+                           <div className="space-y-1">
+                             <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-1">Historical Max progression</h4>
+                             <div className="bg-[#121214]/60 border border-dark-border p-3 rounded-2xl">
+                               <svg viewBox="0 0 400 100" className="w-full h-auto overflow-visible">
+                                 <path
+                                   d={historicalDataPoints.map((pt, i) => {
+                                     const x = 30 + (i * 340) / (historicalDataPoints.length - 1);
+                                     const y = 80 - ((pt.val - 40) / 160) * 60; // scaled
+                                     return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+                                   }).join(' ')}
+                                   fill="none"
+                                   stroke="#c5a880"
+                                   strokeWidth="2.5"
+                                   strokeLinecap="round"
+                                 />
+                                 {historicalDataPoints.map((pt, i) => {
+                                   const x = 30 + (i * 340) / (historicalDataPoints.length - 1);
+                                   const y = 80 - ((pt.val - 40) / 160) * 60;
+                                   return (
+                                     <g key={i}>
+                                       <circle cx={x} cy={y} r="3.5" fill="#020202" stroke="#c5a880" strokeWidth="2" />
+                                       <text x={x} y={y - 8} textAnchor="middle" fill="#ffffff" fontSize="7" fontWeight="bold" className="font-mono">{pt.val}kg</text>
+                                       <text x={x} y="95" textAnchor="middle" fill="#71717a" fontSize="6" fontWeight="bold">{pt.date}</text>
+                                     </g>
+                                   );
+                                 })}
+                               </svg>
+                             </div>
+                           </div>
+                         )}
                       </div>
                     )}
 
@@ -1104,7 +1022,7 @@ export default function App() {
               <div className="flex gap-4">
                 <button 
                   onClick={() => setShowAddExModal(true)}
-                  className="flex-1 py-4 border border-dashed border-brand-primary/20 hover:border-brand-primary/40 rounded-3xl flex items-center justify-center space-x-2 text-xs font-bold uppercase tracking-wider text-brand-primary hover:text-indigo-300 transition-colors bg-indigo-950/5 cursor-pointer"
+                  className="flex-1 py-4 border border-dashed border-brand-accent/20 hover:border-brand-accent/40 rounded-3xl flex items-center justify-center space-x-2 text-xs font-bold uppercase tracking-wider text-brand-accent hover:text-white transition-colors bg-zinc-950/5 cursor-pointer"
                 >
                   <ListPlus className="w-4.5 h-4.5" />
                   <span>Append Exercise to session</span>
@@ -1112,7 +1030,7 @@ export default function App() {
 
                 <button 
                   onClick={finishSession}
-                  className="py-4 px-8 bg-gradient-to-r from-emerald-500 to-teal-600 hover:opacity-95 text-zinc-950 font-black text-xs uppercase tracking-wider rounded-3xl shadow-lg shadow-emerald-500/10 active:scale-95 transition-premium flex items-center space-x-2 cursor-pointer"
+                  className="py-4 px-8 bg-zinc-950 hover:bg-zinc-900 text-brand-accent border border-brand-accent/40 hover:border-brand-accent font-bold text-xs uppercase tracking-wider rounded-3xl shadow-lg shadow-brand-accent/5 active:scale-95 transition-premium flex items-center space-x-2 cursor-pointer"
                 >
                   <Award className="w-4.5 h-4.5" />
                   <span>LOG SESSION DATA</span>
@@ -1134,16 +1052,16 @@ export default function App() {
                 {/* SVG Countdown */}
                 <div className="relative w-36 h-36 flex items-center justify-center">
                   <svg className="w-full h-full transform -rotate-90">
-                    <circle cx="72" cy="72" r="40" stroke="rgba(255,255,255,0.04)" strokeWidth="6" fill="transparent" />
+                    <circle cx="72" cy="72" r="40" stroke="rgba(255,255,255,0.02)" strokeWidth="6" fill="transparent" />
                     <circle 
                       cx="72" cy="72" r="40" 
-                      stroke={isResting ? '#f59e0b' : 'rgba(255,255,255,0.1)'} 
+                      stroke={isResting ? '#c5a880' : 'rgba(255,255,255,0.06)'} 
                       strokeWidth="6" fill="transparent" 
                       strokeDasharray={strokeDash} 
                       strokeDashoffset={strokeOffset} 
                       strokeLinecap="round"
                       className="transition-all duration-1000 ease-linear"
-                      style={{ filter: isResting ? 'drop-shadow(0 0 5px rgba(245, 158, 11, 0.5))' : 'none' }}
+                      style={{ filter: isResting ? 'drop-shadow(0 0 8px rgba(197, 168, 128, 0.35))' : 'none' }}
                     />
                   </svg>
                   
@@ -1168,7 +1086,7 @@ export default function App() {
                         }}
                         className={`py-1.5 px-1 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-colors border cursor-pointer ${
                           initialRestDuration === sec && isResting
-                            ? 'bg-amber-500/20 border-amber-500 text-amber-400'
+                            ? 'bg-[#8c7853]/15 border-[#c5a880]/30 text-[#c5a880]'
                             : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
                         }`}
                       >
@@ -1189,7 +1107,7 @@ export default function App() {
                       }}
                       className={`flex-1 py-2.5 px-3 rounded-xl text-[10px] uppercase font-bold tracking-wider cursor-pointer transition-premium ${
                         isResting 
-                          ? 'bg-amber-950/40 border border-amber-500/40 text-amber-400' 
+                          ? 'bg-[#8c7853]/15 border border-[#c5a880]/30 text-[#c5a880]' 
                           : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800'
                       }`}
                     >
@@ -1216,18 +1134,18 @@ export default function App() {
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <Heart className={`w-5 h-5 text-rose-500 ${sessionActive ? 'animate-[pulse_0.8s_infinite]' : 'animate-pulse'}`} />
+                    <Heart className={`w-5 h-5 text-[#c53030] ${sessionActive ? 'animate-[pulse_0.8s_infinite]' : 'animate-pulse'}`} />
                     <span className="text-xs font-bold text-zinc-300">Simulated Heart Rate</span>
                   </div>
-                  <span className="font-display font-bold text-sm text-rose-400">{simulatedHR} bpm</span>
+                  <span className="font-display font-bold text-sm text-[#c53030]">{simulatedHR} bpm</span>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
-                    <Flame className="w-5 h-5 text-amber-500 animate-pulse" />
+                    <Flame className="w-5 h-5 text-brand-accent animate-pulse" />
                     <span className="text-xs font-bold text-zinc-300">Est. Intensity Rate</span>
                   </div>
-                  <span className="font-display font-bold text-sm text-amber-500">
+                  <span className="font-display font-bold text-sm text-brand-accent">
                     {sessionExercises.length > 0
                       ? Math.round(sessionExercises.reduce((sum, e) => sum + e.sets.filter(s => s.completed).length, 0) * 1.5 + 50)
                       : 0} kcal
@@ -1249,62 +1167,7 @@ export default function App() {
 
           </div>
         )}
-
-        {activeTab === 'analytics' && (
-          <AnalyticsView workouts={workoutsHistory} exercises={exercisesCatalog} />
-        )}
-
-        {activeTab === 'history' && (
-          <HistoryView workouts={workoutsHistory} />
-        )}
-
-        {activeTab === 'exercises' && (
-          <ExerciseLibraryView exercises={exercisesCatalog} onAddExercise={handleRegisterExercise} />
-        )}
-
       </main>
-
-      {/* Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-[#09090b]/95 backdrop-blur-xl border-t border-dark-border flex justify-around items-center px-4 z-50">
-        <button 
-          onClick={() => setActiveTab('home')}
-          className={`flex flex-col items-center space-y-0.5 transition-colors cursor-pointer ${activeTab === 'home' ? 'text-brand-primary' : 'text-zinc-500'}`}
-        >
-          <Sparkles className="w-5 h-5 animate-pulse" />
-          <span className="text-[8px] font-bold uppercase tracking-wider">Home</span>
-        </button>
-        <button 
-          onClick={() => setActiveTab('workout')}
-          className={`flex flex-col items-center space-y-0.5 transition-colors cursor-pointer ${activeTab === 'workout' ? 'text-brand-primary' : 'text-zinc-500'}`}
-        >
-          <Play className="w-5 h-5" />
-          <span className="text-[8px] font-bold uppercase tracking-wider">Workout</span>
-        </button>
-
-        <button 
-          onClick={() => setActiveTab('analytics')}
-          className={`flex flex-col items-center space-y-0.5 transition-colors cursor-pointer ${activeTab === 'analytics' ? 'text-brand-primary' : 'text-zinc-500'}`}
-        >
-          <BarChart2 className="w-5 h-5" />
-          <span className="text-[8px] font-bold uppercase tracking-wider">Analytics</span>
-        </button>
-
-        <button 
-          onClick={() => setActiveTab('history')}
-          className={`flex flex-col items-center space-y-0.5 transition-colors cursor-pointer ${activeTab === 'history' ? 'text-brand-primary' : 'text-zinc-500'}`}
-        >
-          <Calendar className="w-5 h-5" />
-          <span className="text-[8px] font-bold uppercase tracking-wider">History</span>
-        </button>
-
-        <button 
-          onClick={() => setActiveTab('exercises')}
-          className={`flex flex-col items-center space-y-0.5 transition-colors cursor-pointer ${activeTab === 'exercises' ? 'text-brand-primary' : 'text-zinc-500'}`}
-        >
-          <Dumbbell className="w-5 h-5" />
-          <span className="text-[8px] font-bold uppercase tracking-wider">Library</span>
-        </button>
-      </nav>
 
       {/* Modal: Append Exercise */}
       {showAddExModal && (
@@ -1358,11 +1221,11 @@ export default function App() {
             {/* Header */}
             <div className="flex justify-between items-center border-b border-dark-border pb-3">
               <div>
-                <span className="text-[9px] text-emerald-400 font-mono font-bold tracking-widest block uppercase">LINK SYNC SUCCESSFUL</span>
+                <span className="text-[9px] text-brand-accent font-mono font-bold tracking-widest block uppercase">LINK SYNC SUCCESSFUL</span>
                 <h2 className="text-lg font-display font-black text-white tracking-wide">WORKOUT TELEMETRY LOG</h2>
               </div>
-              <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
-                <Award className="w-6 h-6 text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
+              <div className="p-2 bg-brand-accent/10 border border-brand-accent/20 rounded-full">
+                <Award className="w-6 h-6 text-brand-accent drop-shadow-[0_0_8px_rgba(197,168,128,0.25)]" />
               </div>
             </div>
 
@@ -1397,12 +1260,12 @@ export default function App() {
               return (
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-[9px] font-bold text-zinc-400 font-mono">
-                    <span className="text-emerald-400">ACTIVE: {activeMin}m ({activePct}%)</span>
-                    <span className="text-amber-400">REST: {restMin}m ({restPct}%)</span>
+                    <span className="text-zinc-200">ACTIVE: {activeMin}m ({activePct}%)</span>
+                    <span className="text-brand-accent">REST: {restMin}m ({restPct}%)</span>
                   </div>
                   <div className="w-full h-3 rounded-full overflow-hidden flex border border-dark-border">
-                    <div className="bg-emerald-500 h-full shadow-[0_0_8px_rgba(16,185,129,0.4)]" style={{ width: `${activePct}%` }} />
-                    <div className="bg-amber-500 h-full shadow-[0_0_8px_rgba(245,158,11,0.4)]" style={{ width: `${restPct}%` }} />
+                    <div className="bg-zinc-200 h-full" style={{ width: `${activePct}%` }} />
+                    <div className="bg-brand-accent h-full" style={{ width: `${restPct}%` }} />
                   </div>
                 </div>
               );
@@ -1450,8 +1313,8 @@ export default function App() {
                     <svg viewBox="0 0 200 80" className="w-full h-full overflow-visible">
                       <defs>
                         <linearGradient id="hrGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#f4f4f5" stopOpacity="0.12" />
-                          <stop offset="100%" stopColor="#f4f4f5" stopOpacity="0" />
+                          <stop offset="0%" stopColor="#c53030" stopOpacity="0.12" />
+                          <stop offset="100%" stopColor="#c53030" stopOpacity="0" />
                         </linearGradient>
                       </defs>
                       
@@ -1469,7 +1332,7 @@ export default function App() {
                           }).join(' ');
                         })()}
                         fill="none"
-                        stroke="#f4f4f5"
+                        stroke="#c53030"
                         strokeWidth="2.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -1490,7 +1353,7 @@ export default function App() {
                       />
                       
                       {/* Labels */}
-                      <text x="5" y="10" fill="#f4f4f5" fontSize="6" fontWeight="bold" className="font-mono">
+                      <text x="5" y="10" fill="#ef4444" fontSize="6" fontWeight="bold" className="font-mono">
                         Max: {Math.max(...completedWorkoutSummary.heartRates)} bpm
                       </text>
                       <text x="5" y="76" fill="#71717a" fontSize="6" fontWeight="bold" className="font-mono">
@@ -1508,10 +1371,10 @@ export default function App() {
                   <div className="bg-[#121214]/60 border border-dark-border p-3 rounded-2xl flex flex-col justify-between h-[120px] text-[8px] font-mono">
                     {(() => {
                       const zones = [
-                        { name: "Peak (Anaerobic)", min: 135, max: 200, color: "bg-rose-500" },
-                        { name: "Cardio (Aerobic)", min: 115, max: 135, color: "bg-orange-500" },
-                        { name: "Fat Burn", min: 90, max: 115, color: "bg-amber-500" },
-                        { name: "Warm-up / Rest", min: 0, max: 90, color: "bg-emerald-500" }
+                        { name: "Peak (Anaerobic)", min: 135, max: 200, color: "bg-[#991b1b]" },
+                        { name: "Cardio (Aerobic)", min: 115, max: 135, color: "bg-[#c5a880]" },
+                        { name: "Fat Burn", min: 90, max: 115, color: "bg-[#a1a1aa]" },
+                        { name: "Warm-up / Rest", min: 0, max: 90, color: "bg-[#27272a]" }
                       ];
 
                       const totalLogs = completedWorkoutSummary.heartRates.length || 1;
@@ -1539,7 +1402,7 @@ export default function App() {
             {/* Close button */}
             <button 
               onClick={() => setShowCelebration(false)}
-              className="w-full py-3 bg-gradient-to-r from-brand-primary to-brand-accent hover:opacity-95 text-white font-black text-xs uppercase tracking-wider rounded-2xl cursor-pointer shadow-lg shadow-brand-primary/10 active:scale-95 transition-premium"
+              className="w-full py-3 bg-zinc-950 hover:bg-zinc-900 text-brand-accent border border-brand-accent/40 hover:border-brand-accent font-bold text-xs uppercase tracking-wider rounded-2xl cursor-pointer shadow-lg shadow-brand-accent/5 active:scale-95 transition-premium"
             >
               CLOSE WORKOUT TELEMETRY MATRIX
             </button>
