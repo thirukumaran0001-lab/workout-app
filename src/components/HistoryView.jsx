@@ -52,7 +52,6 @@ export default function HistoryView({ workouts }) {
     );
   }
 
-  // Show newest workouts first
   const sortedWorkouts = [...workouts].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   return (
@@ -70,12 +69,12 @@ export default function HistoryView({ workouts }) {
         return (
           <div 
             key={workout.id} 
-            className="bg-[#0a0a0c]/60 border border-dark-border rounded-3xl overflow-hidden transition-premium hover-card-glow"
+            className="bg-[#0c0d19]/40 border border-dark-border rounded-3xl overflow-hidden transition-premium hover-card-glow"
           >
             {/* Header / Clickable Toggle */}
             <div 
               onClick={() => toggleExpand(workout.id)}
-              className="p-5 flex justify-between items-center cursor-pointer hover:bg-[#c5a880]/5 transition-colors"
+              className="p-5 flex justify-between items-center cursor-pointer hover:bg-brand-primary/5 transition-colors"
             >
               <div className="flex flex-col space-y-1">
                 <span className="text-[9px] font-bold text-zinc-500 font-mono uppercase tracking-wider">
@@ -121,7 +120,6 @@ export default function HistoryView({ workouts }) {
                   const activePct = Math.round((activeSec / totalSec) * 100);
                   const restPct = 100 - activePct;
                   
-                  // Mock HR generator if missing
                   const hrLogs = workout.heartRates && workout.heartRates.length > 0 
                     ? workout.heartRates 
                     : Array.from({ length: 12 }, (_, i) => {
@@ -132,7 +130,6 @@ export default function HistoryView({ workouts }) {
                         return Math.max(65, Math.min(145, Math.round(base + fluctuation)));
                       });
 
-                  // Generate Bezier Curve Path for HR Curve
                   const getBezierPath = (points) => {
                     const width = 200;
                     const height = 50;
@@ -170,34 +167,33 @@ export default function HistoryView({ workouts }) {
                       {/* Active vs Rest ratio */}
                       <div className="space-y-1.5">
                         <div className="flex justify-between text-[9px] font-bold text-zinc-400 font-mono">
-                          <span className="text-brand-secondary">ACTIVE: {Math.round(activeSec / 60)}m ({activePct})</span>
-                          <span className="text-brand-accent">REST: {Math.round(restSec / 60)}m ({restPct}%)</span>
+                          <span className="text-brand-primary">ACTIVE: {Math.round(activeSec / 60)}m ({activePct}%)</span>
+                          <span className="text-brand-secondary">REST: {Math.round(restSec / 60)}m ({restPct}%)</span>
                         </div>
                         <div className="w-full h-2 rounded-full overflow-hidden flex border border-dark-border">
-                          <div className="bg-brand-secondary h-full" style={{ width: `${activePct}%` }} />
-                          <div className="bg-brand-accent h-full" style={{ width: `${restPct}%` }} />
+                          <div className="bg-brand-primary h-full" style={{ width: `${activePct}%` }} />
+                          <div className="bg-brand-secondary h-full" style={{ width: `${restPct}%` }} />
                         </div>
                       </div>
 
                       {/* Side by side Heart Rate graph & Zones */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* SVG HR chart */}
-                        <div className="bg-[#0a0a0c]/80 border border-dark-border p-3 rounded-2xl flex flex-col justify-center h-[95px]">
+                        <div className="bg-[#0a0a16]/80 border border-dark-border p-3 rounded-2xl flex flex-col justify-center h-[95px]">
                           <svg viewBox="0 0 200 50" className="w-full h-full overflow-visible">
                             <defs>
                               <linearGradient id={`hrGrad-${workout.id}`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#c53030" stopOpacity="0.12" />
-                                <stop offset="100%" stopColor="#c53030" stopOpacity="0" />
+                                <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.12" />
+                                <stop offset="100%" stopColor="#f43f5e" stopOpacity="0" />
                               </linearGradient>
                             </defs>
                             <path d={hrChart.areaPath} fill={`url(#hrGrad-${workout.id})`} />
-                            <path d={hrChart.path} fill="none" stroke="#c53030" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d={hrChart.path} fill="none" stroke="#f43f5e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                             
-                            {/* Peak indicator dot */}
                             {hrChart.coords.length > 0 && (() => {
                               const peakIdx = hrLogs.indexOf(Math.max(...hrLogs));
                               const peakCoord = hrChart.coords[peakIdx];
-                              return <circle cx={peakCoord.x} cy={peakCoord.y} r="2.5" fill="#020202" stroke="#c5a880" strokeWidth="1" />;
+                              return <circle cx={peakCoord.x} cy={peakCoord.y} r="2.5" fill="#020202" stroke="#06b6d4" strokeWidth="1" />;
                             })()}
 
                             <text x="2" y="8" fill="#e4e4e7" fontSize="5" fontWeight="bold" className="font-mono">Max: {Math.max(...hrLogs)} bpm</text>
@@ -206,13 +202,13 @@ export default function HistoryView({ workouts }) {
                         </div>
 
                         {/* Zones */}
-                        <div className="bg-[#0a0a0c]/80 border border-dark-border p-2.5 rounded-2xl flex flex-col justify-between h-[95px] text-[8px] font-mono">
+                        <div className="bg-[#0a0a16]/80 border border-dark-border p-2.5 rounded-2xl flex flex-col justify-between h-[95px] text-[8px] font-mono">
                           {(() => {
                             const zones = [
-                              { name: "Anaerobic (Peak)", min: 135, max: 200, color: "bg-[#991b1b]" },
-                              { name: "Aerobic (Cardio)", min: 115, max: 135, color: "bg-[#c5a880]" },
-                              { name: "Fat Burn", min: 90, max: 115, color: "bg-[#a1a1aa]" },
-                              { name: "Warm-up / Rest", min: 0, max: 90, color: "bg-[#27272a]" }
+                              { name: "Anaerobic (Peak)", min: 135, max: 200, color: "bg-brand-accent" },
+                              { name: "Aerobic (Cardio)", min: 115, max: 135, color: "bg-brand-primary" },
+                              { name: "Fat Burn", min: 90, max: 115, color: "bg-brand-secondary" },
+                              { name: "Warm-up / Rest", min: 0, max: 90, color: "bg-zinc-800" }
                             ];
 
                             const totalCount = hrLogs.length || 1;
@@ -245,19 +241,11 @@ export default function HistoryView({ workouts }) {
                       <span className="text-[8px] text-zinc-400 bg-zinc-950 border border-dark-border px-2 py-0.5 rounded font-mono uppercase tracking-wider">{exercise.muscle}</span>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-2 bg-[#09090b]/40 border border-dark-border p-2.5 rounded-2xl">
+                    <div className="grid grid-cols-4 gap-2 bg-[#0c0d19]/30 border border-dark-border p-2.5 rounded-2xl">
                       {exercise.sets.map((set, sIdx) => (
-                        <div key={sIdx} className="flex flex-col items-center justify-center p-2 bg-[#0a0a0c]/85 border border-dark-border rounded-xl text-center font-mono transition-premium hover:border-zinc-700">
-                          <span className={`text-[8px] font-bold uppercase px-1.5 py-0.5 rounded ${
-                            set.type === 'WarmUp' 
-                              ? 'bg-[#8c7853]/15 text-[#c5a880]' 
-                              : set.type === 'DropSet'
-                              ? 'bg-[#c5a880]/15 text-[#c5a880]'
-                              : set.type === 'Failure'
-                              ? 'bg-[#991b1b]/15 text-[#ef4444]'
-                              : 'bg-[#e4e4e7]/10 text-[#e4e4e7]'
-                          }`}>
-                            {set.type === 'WarmUp' ? 'W' : set.type === 'DropSet' ? 'D' : set.type === 'Failure' ? 'F' : `S${sIdx + 1}`}
+                        <div key={sIdx} className="flex flex-col items-center justify-center p-2 bg-[#090a18]/70 border border-dark-border rounded-xl text-center font-mono transition-premium hover:border-zinc-700">
+                          <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
+                            S{sIdx + 1}
                           </span>
                           <span className="text-[11px] font-bold text-zinc-200 mt-1 block">
                             {set.weight} kg

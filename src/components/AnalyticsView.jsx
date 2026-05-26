@@ -2,17 +2,15 @@ import React, { useState } from 'react';
 import { TrendingUp, BarChart2, Calendar, Dumbbell, Clock } from 'lucide-react';
 
 export default function AnalyticsView({ workouts, exercises }) {
-  const [selectedExerciseId, setSelectedExerciseId] = useState(1); // Default to Bench Press (id 1)
+  const [selectedExerciseId, setSelectedExerciseId] = useState(1);
 
   const calculate1RM = (weight, reps) => {
     if (reps === 1) return weight;
     return Math.round(weight / (1.0278 - (0.0278 * reps)));
   };
 
-  // Calculations
   const totalWorkouts = workouts.length;
 
-  // Extract 1RM progress for selected exercise
   const exerciseProgress = workouts
     .map(w => {
       const matchEx = w.exercises.find(e => e.id === Number(selectedExerciseId));
@@ -29,7 +27,6 @@ export default function AnalyticsView({ workouts, exercises }) {
     .filter(Boolean)
     .sort((a, b) => a.rawDate - b.rawDate);
 
-  // Extract total volume per workout
   const volumeData = workouts
     .map(w => {
       let sessionVolume = 0;
@@ -49,7 +46,6 @@ export default function AnalyticsView({ workouts, exercises }) {
     .filter(d => d.val > 0)
     .sort((a, b) => a.rawDate - b.rawDate);
 
-  // Compute stats
   const totalVolumeLifted = workouts.reduce((total, w) => {
     return total + w.exercises.reduce((exTotal, ex) => {
       return exTotal + ex.sets.reduce((sTotal, s) => {
@@ -62,7 +58,6 @@ export default function AnalyticsView({ workouts, exercises }) {
     ? Math.round(workouts.reduce((sum, w) => sum + w.elapsed, 0) / totalWorkouts / 60)
     : 0;
 
-  // Custom SVG Line Chart generator for 1RM Potential with Bezier Spline
   const renderLineChart = (data) => {
     if (data.length === 0) {
       return (
@@ -86,7 +81,6 @@ export default function AnalyticsView({ workouts, exercises }) {
       return { x, y, label: d.date, value: d.val };
     });
 
-    // Build smooth cubic bezier curve
     let pathData = `M ${points[0].x} ${points[0].y}`;
     for (let i = 0; i < points.length - 1; i++) {
       const p0 = points[i];
@@ -101,34 +95,30 @@ export default function AnalyticsView({ workouts, exercises }) {
     const areaPathData = `${pathData} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`;
 
     return (
-      <div className="relative bg-[#0a0a0c]/60 border border-dark-border rounded-3xl p-4 shadow-2xl hover-card-glow">
+      <div className="relative bg-[#0c0d19]/40 border border-dark-border rounded-3xl p-4 shadow-2xl hover-card-glow">
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
           <defs>
             <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#c5a880" stopOpacity="0.08" />
-              <stop offset="100%" stopColor="#c5a880" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.12" />
+              <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.0" />
             </linearGradient>
             <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#8c7853" />
-              <stop offset="100%" stopColor="#c5a880" />
+              <stop offset="0%" stopColor="#8b5cf6" />
+              <stop offset="100%" stopColor="#06b6d4" />
             </linearGradient>
           </defs>
 
-          {/* Grid lines */}
           <line x1={padding} y1={padding} x2={width - padding} y2={padding} stroke="rgba(255,255,255,0.015)" strokeWidth="0.5" strokeDasharray="3 3" />
           <line x1={padding} y1={height / 2} x2={width - padding} y2={height / 2} stroke="rgba(255,255,255,0.015)" strokeWidth="0.5" strokeDasharray="3 3" />
           <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
 
-          {/* Area fill */}
           {areaPathData && <path d={areaPathData} fill="url(#chartGradient)" />}
 
-          {/* Line path */}
           {pathData && <path d={pathData} fill="none" stroke="url(#lineGradient)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />}
 
-          {/* Data points */}
           {points.map((p, i) => (
             <g key={i} className="group cursor-pointer">
-              <circle cx={p.x} cy={p.y} r="4.5" fill="#020202" stroke="#c5a880" strokeWidth="2" className="transition-transform group-hover:scale-125" />
+              <circle cx={p.x} cy={p.y} r="4.5" fill="#03030b" stroke="#06b6d4" strokeWidth="2" className="transition-transform group-hover:scale-125" />
               
               <text x={p.x} y={p.y - 12} textAnchor="middle" fill="#e4e4e7" fontSize="9" fontWeight="bold" className="opacity-0 group-hover:opacity-100 transition-opacity font-mono pointer-events-none">
                 {p.value} kg
@@ -143,7 +133,6 @@ export default function AnalyticsView({ workouts, exercises }) {
     );
   };
 
-  // Custom SVG Bar Chart generator for Volume lifted
   const renderBarChart = (data) => {
     if (data.length === 0) {
       return (
@@ -161,21 +150,19 @@ export default function AnalyticsView({ workouts, exercises }) {
     const chartHeight = height - 2 * padding;
 
     return (
-      <div className="relative bg-[#0a0a0c]/60 border border-dark-border rounded-3xl p-4 shadow-2xl hover-card-glow">
+      <div className="relative bg-[#0c0d19]/40 border border-dark-border rounded-3xl p-4 shadow-2xl hover-card-glow">
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
           <defs>
             <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#c5a880" />
-              <stop offset="100%" stopColor="#16161a" />
+              <stop offset="0%" stopColor="#06b6d4" />
+              <stop offset="100%" stopColor="#1a1c35" />
             </linearGradient>
           </defs>
 
-          {/* Grid lines */}
           <line x1={padding} y1={padding} x2={width - padding} y2={padding} stroke="rgba(255,255,255,0.015)" strokeWidth="0.5" strokeDasharray="3 3" />
           <line x1={padding} y1={height / 2} x2={width - padding} y2={height / 2} stroke="rgba(255,255,255,0.015)" strokeWidth="0.5" strokeDasharray="3 3" />
           <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
 
-          {/* Bars */}
           {data.map((d, index) => {
             const barWidth = Math.min(26, (width - 2 * padding) / data.length - 8);
             const x = padding + (index * (width - 2 * padding)) / data.length + (width - 2 * padding) / (data.length * 2) - barWidth / 2;
@@ -205,43 +192,43 @@ export default function AnalyticsView({ workouts, exercises }) {
       {/* Vitals Telemetry Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         
-        <div className="bg-[#0a0a0c]/60 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
-          <div className="p-3 bg-zinc-950 border border-dark-border rounded-2xl">
-            <Calendar className="w-5 h-5 text-zinc-300" />
+        <div className="bg-[#0c0d19]/40 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
+          <div className="p-3 bg-zinc-950 border border-dark-border rounded-2xl text-brand-primary">
+            <Calendar className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">Total Sessions</p>
+            <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold font-mono">Total Sessions</p>
             <h3 className="text-xl font-bold font-mono text-white mt-0.5">{totalWorkouts}</h3>
           </div>
         </div>
 
-        <div className="bg-[#0a0a0c]/60 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
-          <div className="p-3 bg-zinc-950 border border-dark-border rounded-2xl">
-            <Dumbbell className="w-5 h-5 text-zinc-300" />
+        <div className="bg-[#0c0d19]/40 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
+          <div className="p-3 bg-zinc-950 border border-dark-border rounded-2xl text-brand-secondary">
+            <Dumbbell className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">Total Weight</p>
+            <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold font-mono">Total Weight</p>
             <h3 className="text-xl font-bold font-mono text-white mt-0.5">{totalVolumeLifted.toLocaleString()} kg</h3>
           </div>
         </div>
 
-        <div className="bg-[#0a0a0c]/60 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
-          <div className="p-3 bg-zinc-950 border border-dark-border rounded-2xl">
-            <Clock className="w-5 h-5 text-zinc-300" />
+        <div className="bg-[#0c0d19]/40 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
+          <div className="p-3 bg-zinc-950 border border-dark-border rounded-2xl text-brand-accent">
+            <Clock className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">Avg. Duration</p>
+            <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold font-mono">Avg. Duration</p>
             <h3 className="text-xl font-bold font-mono text-white mt-0.5">{averageDuration} mins</h3>
           </div>
         </div>
 
-        <div className="bg-[#0a0a0c]/60 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
-          <div className="p-3 bg-zinc-950 border border-dark-border rounded-2xl">
-            <TrendingUp className="w-5 h-5 text-zinc-300" />
+        <div className="bg-[#0c0d19]/40 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
+          <div className="p-3 bg-zinc-950 border border-dark-border rounded-2xl text-emerald-400">
+            <TrendingUp className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">Progress State</p>
-            <h3 className="text-xl font-bold text-brand-accent mt-0.5">Optimal</h3>
+            <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold font-mono">Progress State</p>
+            <h3 className="text-xl font-bold text-emerald-400 mt-0.5">Optimal</h3>
           </div>
         </div>
 

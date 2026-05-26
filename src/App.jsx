@@ -12,6 +12,8 @@ import ExerciseLibraryView from './components/ExerciseLibraryView';
 
 export default function App() {
 
+  // Navigation and active UI tabs
+  const [currentTab, setCurrentTab] = useState('dashboard'); // 'dashboard', 'history', 'analytics', 'exercises', 'active-session'
 
   // Catalog & History
   const [exercisesCatalog, setExercisesCatalog] = useState([]);
@@ -37,6 +39,39 @@ export default function App() {
   // Telemetry simulation variables
   const [simulatedHR, setSimulatedHR] = useState(78);
   const [sessionHeartRates, setSessionHeartRates] = useState([]);
+  
+  // Cardiogram wave animation helper
+  const [pulsePhase, setPulsePhase] = useState(0);
+  useEffect(() => {
+    let anim = null;
+    if (sessionActive) {
+      anim = setInterval(() => {
+        setPulsePhase(prev => (prev + 1) % 100);
+      }, 50);
+    } else {
+      setPulsePhase(0);
+    }
+    return () => clearInterval(anim);
+  }, [sessionActive]);
+
+  const getHeartbeatPath = () => {
+    const points = [];
+    const width = 200;
+    const height = 40;
+    for (let x = 0; x <= width; x += 3) {
+      let y = height / 2;
+      const wavePos = (pulsePhase * 2.5) % (width + 60) - 30;
+      const dx = x - wavePos;
+      if (dx > -15 && dx < 15) {
+        if (dx > -15 && dx <= -10) y += (dx + 15) * 1.5;
+        else if (dx > -10 && dx <= -5) y -= (dx + 10) * 5;
+        else if (dx > -5 && dx <= 0) y += (dx + 5) * 7;
+        else if (dx > 0 && dx <= 5) y -= dx * 3;
+      }
+      points.push(`${x},${y}`);
+    }
+    return `M ${points.join(' L ')}`;
+  };
 
   // Log simulated heart rate telemetry during active session
   useEffect(() => {
@@ -81,7 +116,6 @@ export default function App() {
   useEffect(() => {
     const hrInterval = setInterval(() => {
       setSimulatedHR(prev => {
-        // HR ranges depending on active session state and rest timer
         const targetMin = isResting ? 68 : (sessionActive ? 115 : 72);
         const targetMax = isResting ? 82 : (sessionActive ? 138 : 88);
         const step = Math.random() > 0.5 ? 1 : -1;
@@ -115,7 +149,6 @@ export default function App() {
         if (localEx) {
           setExercisesCatalog(JSON.parse(localEx));
         } else {
-          // Hardcoded fallback list matching standard exercises
           const defaultEx = [
             { id: 1, name: "Bench Press", muscle: "Chest" },
             { id: 2, name: "Squats", muscle: "Legs" },
@@ -170,29 +203,28 @@ export default function App() {
 
       if (sessionData) {
         setSessionName(sessionData.name);
-        
-        // Re-hydrate elapsed timer from localStorage fallback or server state
         const localElapsed = localStorage.getItem('telemetry_elapsed');
         setSessionElapsed(localElapsed ? Number(localElapsed) : (sessionData.elapsed || 0));
-        
         setSessionActive(sessionData.isActive);
         setSessionExercises(sessionData.exercises || []);
+        if (sessionData.isActive) {
+          setCurrentTab('active-session');
+        }
         if (sessionData.isResting) {
           setIsResting(true);
           setRestTimer(sessionData.restTimer);
           setInitialRestDuration(sessionData.initialRestDuration || 90);
         }
       } else {
-        // Initialize default setup
         setSessionExercises([
           {
             id: 1,
             name: "Bench Press",
             muscle: "Chest",
             sets: [
-              { id: 101, type: "WarmUp", weight: 0, reps: 0, completed: false },
-              { id: 102, type: "Normal", weight: 0, reps: 0, completed: false },
-              { id: 103, type: "Normal", weight: 0, reps: 0, completed: false }
+              { id: 101, weight: 0, reps: 0, completed: false },
+              { id: 102, weight: 0, reps: 0, completed: false },
+              { id: 103, weight: 0, reps: 0, completed: false }
             ]
           }
         ]);
@@ -201,7 +233,7 @@ export default function App() {
     loadInitialData();
   }, []);
 
-  // Performance Optimization: Debounced session saves to backend (excluding elapsed timer ticks)
+  // Debounced session saves to backend
   const isFirstMount = useRef(true);
   useEffect(() => {
     if (isFirstMount.current) {
@@ -218,7 +250,7 @@ export default function App() {
   const syncActiveSessionToBackend = async () => {
     const payload = {
       name: sessionName,
-      elapsed: sessionElapsed, // current elapsed value
+      elapsed: sessionElapsed,
       isActive: sessionActive,
       exercises: sessionExercises,
       isResting,
@@ -226,7 +258,6 @@ export default function App() {
       initialRestDuration
     };
 
-    // Save to localStorage immediately
     localStorage.setItem('telemetry_session', JSON.stringify(payload));
 
     try {
@@ -240,7 +271,7 @@ export default function App() {
     }
   };
 
-  // Stopwatch ticking logic (persisted locally to eliminate network requests every second)
+  // Stopwatch ticking logic
   useEffect(() => {
     let interval = null;
     if (sessionActive) {
@@ -275,7 +306,6 @@ export default function App() {
       ...newEx
     };
 
-    // Optimistically update local state and save to localStorage
     setExercisesCatalog(prev => {
       const updated = [...prev, fallbackNewEx];
       localStorage.setItem('telemetry_exercises', JSON.stringify(updated));
@@ -290,7 +320,6 @@ export default function App() {
       });
       if (res.ok) {
         const data = await res.json();
-        // Replace optimistic entry with backend-generated entry if different
         setExercisesCatalog(prev => {
           const updated = prev.map(e => e.id === fallbackNewEx.id ? data : e);
           localStorage.setItem('telemetry_exercises', JSON.stringify(updated));
@@ -302,16 +331,14 @@ export default function App() {
     }
   };
 
-  // Safe 1RM potential calculator
   const calculate1RM = (weight, reps) => {
     const parsedWeight = parseFloat(weight) || 0;
     const parsedReps = parseInt(reps) || 0;
     if (parsedReps <= 1) return parsedWeight;
-    const cappedReps = Math.min(36, parsedReps); // prevent divide by zero/negatives
+    const cappedReps = Math.min(36, parsedReps);
     return Math.round(parsedWeight / (1.0278 - (0.0278 * cappedReps)));
   };
 
-  // Live session modifications
   const handleSetChange = (exerciseId, setId, field, value) => {
     setSessionExercises(prev => prev.map(ex => {
       if (ex.id !== exerciseId) return ex;
@@ -331,7 +358,6 @@ export default function App() {
           if (s.id === setId) {
             const nextState = !s.completed;
             if (nextState) {
-              // Trigger rest timer
               setRestTimer(initialRestDuration);
               setIsResting(true);
             }
@@ -351,7 +377,7 @@ export default function App() {
       const reps = lastSet ? lastSet.reps : 0;
       return {
         ...ex,
-        sets: [...ex.sets, { id: Date.now(), type: "Normal", weight, reps, completed: false }]
+        sets: [...ex.sets, { id: Date.now(), weight, reps, completed: false }]
       };
     }));
   };
@@ -371,7 +397,7 @@ export default function App() {
         id: exTemplate.id,
         name: exTemplate.name,
         muscle: exTemplate.muscle,
-        sets: [{ id: Date.now(), type: "Normal", weight: 0, reps: 0, completed: false }]
+        sets: [{ id: Date.now(), weight: 0, reps: 0, completed: false }]
       }
     ]);
     setShowAddExModal(false);
@@ -381,11 +407,11 @@ export default function App() {
     setSessionExercises(prev => prev.filter(e => e.id !== exId));
   };
 
-  // End workout log submission
   const handleStartRoutine = (routineName, exercises) => {
     setSessionName(routineName);
     setSessionExercises(exercises);
     setSessionActive(true);
+    setCurrentTab('active-session');
     setSessionElapsed(0);
     localStorage.removeItem('telemetry_elapsed');
     
@@ -399,7 +425,6 @@ export default function App() {
       initialRestDuration: 90
     };
 
-    // Always save active session to localStorage
     localStorage.setItem('telemetry_session', JSON.stringify(payload));
 
     fetch('/api/session', {
@@ -412,7 +437,6 @@ export default function App() {
   const finishSession = async () => {
     if (sessionExercises.length === 0) return;
 
-    // Filter to only logged completed sets
     const completedExs = sessionExercises.map(ex => ({
       ...ex,
       sets: ex.sets.filter(s => s.completed)
@@ -428,7 +452,6 @@ export default function App() {
       return sum + ex.sets.reduce((sSum, s) => sSum + ((parseFloat(s.weight) || 0) * (parseInt(s.reps) || 0)), 0);
     }, 0);
 
-    // Capture simulated heart rates or generate a telemetry array
     const finalHRLogs = sessionHeartRates.length >= 5
       ? sessionHeartRates
       : Array.from({ length: 15 }, (_, i) => {
@@ -453,19 +476,17 @@ export default function App() {
       restDuration
     };
 
-    // Save workout to local history immediately
     setWorkoutsHistory(prev => {
       const updated = [...prev, workoutPayload];
       localStorage.setItem('telemetry_workouts', JSON.stringify(updated));
       return updated;
     });
 
-    // Clear active session in local storage
     localStorage.removeItem('telemetry_session');
     localStorage.removeItem('telemetry_elapsed');
 
-    // Reset React states
     setSessionActive(false);
+    setCurrentTab('dashboard');
     setSessionElapsed(0);
     setIsResting(false);
     setSessionHeartRates([]);
@@ -475,9 +496,9 @@ export default function App() {
         name: "Bench Press",
         muscle: "Chest",
         sets: [
-          { id: 101, type: "WarmUp", weight: 0, reps: 0, completed: false },
-          { id: 102, type: "Normal", weight: 0, reps: 0, completed: false },
-          { id: 103, type: "Normal", weight: 0, reps: 0, completed: false }
+          { id: 101, weight: 0, reps: 0, completed: false },
+          { id: 102, weight: 0, reps: 0, completed: false },
+          { id: 103, weight: 0, reps: 0, completed: false }
         ]
       }
     ]);
@@ -502,7 +523,6 @@ export default function App() {
       });
       if (res.ok) {
         const data = await res.json();
-        // Replace with server-generated entry if different
         setWorkoutsHistory(prev => {
           const updated = prev.map(w => w.id === workoutPayload.id ? data : w);
           localStorage.setItem('telemetry_workouts', JSON.stringify(updated));
@@ -510,7 +530,6 @@ export default function App() {
         });
       }
 
-      // Reset active session state on server
       await fetch('/api/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -528,29 +547,63 @@ export default function App() {
     return `${hrs > 0 ? hrs + ':' : ''}${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Rest dial percentage
   const strokeDash = 251.2;
   const strokeOffset = isResting 
     ? strokeDash - (restTimer / initialRestDuration) * strokeDash 
     : strokeDash;
 
   return (
-    <div className="min-h-screen bg-dark-bg text-zinc-100 font-sans bg-stealth-grid flex flex-col pb-6">
+    <div className="min-h-screen bg-dark-bg text-zinc-100 font-sans bg-stealth-grid flex flex-col pb-16">
       
       {/* Top Header */}
-      <header className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 py-5 border-b border-dark-border mb-6 flex justify-between items-center z-10">
-        <div className="flex items-center space-x-2.5 text-white">
-          <div className="p-2 bg-brand-accent/10 border border-brand-accent/20 rounded-xl">
-            <Sparkles className="w-5 h-5 text-brand-accent" />
+      <header className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 py-4 border-b border-dark-border mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4 z-10">
+        <div className="flex items-center justify-between md:justify-start space-x-4">
+          <div className="flex items-center space-x-2.5 text-white">
+            <div className="p-2 bg-brand-primary/10 border border-brand-primary/20 rounded-xl">
+              <Sparkles className="w-5 h-5 text-brand-primary animate-pulse" />
+            </div>
+            <div>
+              <span className="font-display font-black text-sm tracking-widest bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
+                STRONGSPLIT
+              </span>
+              <p className="text-[8px] text-zinc-500 font-mono tracking-widest uppercase mt-0.5">TELEMETRY PLATFORM</p>
+            </div>
           </div>
-          <div>
-            <span className="font-display font-black text-sm tracking-widest bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent">
-              STRONGSPLIT
-            </span>
-            <p className="text-[8px] text-zinc-500 font-mono tracking-widest uppercase mt-0.5">TELEMETRY PLATFORM</p>
+          
+          <div className="md:hidden flex items-center space-x-2">
+            {sessionActive && (
+              <span className="font-mono font-bold text-[10px] text-brand-accent animate-pulse bg-brand-accent/10 border border-brand-accent/20 px-2 py-0.5 rounded-lg">
+                {formatTimeHHMMSS(sessionElapsed)}
+              </span>
+            )}
           </div>
         </div>
-        <div className="flex items-center space-x-4">
+
+        {/* Navigation Tabs */}
+        <nav className="flex space-x-1 p-1 bg-zinc-950/60 border border-dark-border rounded-xl self-center">
+          {[
+            { id: 'dashboard', label: 'Dashboard' },
+            { id: 'history', label: 'History' },
+            { id: 'analytics', label: 'Analytics' },
+            { id: 'exercises', label: 'Library' },
+            ...(sessionActive ? [{ id: 'active-session', label: 'Workout ⚡' }] : [])
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setCurrentTab(tab.id)}
+              className={`py-1.5 px-3 rounded-lg text-xs font-bold uppercase tracking-wider transition-premium cursor-pointer ${
+                currentTab === tab.id
+                  ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/15'
+                  : 'text-zinc-500 hover:text-zinc-300'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </nav>
+
+        {/* Right Status */}
+        <div className="hidden md:flex items-center space-x-4">
           <span className="text-[9px] text-zinc-500 font-mono uppercase tracking-wider">
             {sessionActive ? "TRACKING ACTIVE SESSION" : "SYSTEM CALIBRATED"}
           </span>
@@ -565,609 +618,657 @@ export default function App() {
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 z-10">
         
-        {!sessionActive ? (
+        {currentTab === 'dashboard' && (
           <HomeDashboardView 
             workouts={workoutsHistory} 
             onStartRoutine={handleStartRoutine} 
           />
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-            
-            {/* Exercises Log Panel */}
-            <div className="lg:col-span-2 space-y-6">
+        )}
+
+        {currentTab === 'history' && (
+          <HistoryView 
+            workouts={workoutsHistory} 
+          />
+        )}
+
+        {currentTab === 'analytics' && (
+          <AnalyticsView 
+            workouts={workoutsHistory} 
+            exercises={exercisesCatalog} 
+          />
+        )}
+
+        {currentTab === 'exercises' && (
+          <ExerciseLibraryView 
+            exercises={exercisesCatalog} 
+            onAddExercise={handleRegisterExercise} 
+          />
+        )}
+        
+        {currentTab === 'active-session' && (
+          (!sessionActive) ? (
+            <div className="glass-panel rounded-3xl p-12 text-center max-w-md mx-auto">
+              <Sparkles className="w-8 h-8 text-zinc-500 mx-auto mb-3 animate-pulse" />
+              <h3 className="text-sm font-semibold text-zinc-300">No active workout session</h3>
+              <p className="text-xs text-zinc-500 mt-1">Please go to the Dashboard to initialize a routine template.</p>
+              <button 
+                onClick={() => setCurrentTab('dashboard')} 
+                className="mt-4 py-2 px-4 bg-brand-primary hover:bg-brand-primary/80 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer"
+              >
+                Go to Dashboard
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
               
-              {/* Dynamic Header */}
-              <div className="glass-panel rounded-3xl p-6 flex flex-col space-y-4 hover-card-glow">
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                  <div className="flex-1">
-                    <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block mb-1">Active Core Session</span>
-                    <input 
-                      type="text" 
-                      value={sessionName}
-                      onChange={(e) => setSessionName(e.target.value)}
-                      className="bg-transparent text-xl sm:text-2xl font-black text-white focus:outline-none border-b border-transparent focus:border-zinc-800 w-full"
-                    />
-                  </div>
-
-                  <div className="flex items-center space-x-3">
-                    <div className="bg-zinc-950/40 border border-dark-border px-4 py-2.5 rounded-2xl text-center">
-                      <span className="text-[9px] text-zinc-500 uppercase font-bold block tracking-wider">ELAPSED TIME</span>
-                      <span className="font-mono font-black text-sm text-white tracking-wider">{formatTimeHHMMSS(sessionElapsed)}</span>
-                    </div>
-                    
-                    <button 
-                      onClick={() => setSessionActive(prev => !prev)}
-                      className={`py-2.5 px-4 rounded-2xl font-bold text-xs uppercase tracking-wider flex items-center space-x-2 transition-premium cursor-pointer ${
-                        sessionActive 
-                          ? 'bg-zinc-900 border-zinc-800 text-zinc-200' 
-                          : 'bg-zinc-950 hover:bg-zinc-900 text-brand-accent border border-brand-accent/40 hover:border-brand-accent font-bold shadow-lg shadow-brand-accent/5 active:scale-95'
-                      }`}
-                    >
-                      {sessionActive ? (
-                        <>
-                          <Square className="w-3.5 h-3.5 fill-current" />
-                          <span>Freeze</span>
-                        </>
-                      ) : (
-                        <>
-                          <Play className="w-3.5 h-3.5 fill-current" />
-                          <span>Synchronize</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Progress bar */}
-                {(() => {
-                  const totalSetsInActiveSession = sessionExercises.reduce((sum, ex) => sum + ex.sets.length, 0);
-                  const completedSetsInActiveSession = sessionExercises.reduce((sum, ex) => sum + ex.sets.filter(s => s.completed).length, 0);
-                  const pctDone = totalSetsInActiveSession > 0 ? Math.round((completedSetsInActiveSession / totalSetsInActiveSession) * 100) : 0;
-                  return (
-                    <div className="border-t border-dark-border pt-3">
-                      <div className="w-full bg-zinc-950 h-2 rounded-full overflow-hidden border border-zinc-900">
-                        <div 
-                          className="bg-gradient-to-r from-brand-secondary via-brand-accent to-[#ffffff] h-full transition-premium duration-500 ease-out"
-                          style={{ width: `${pctDone}%` }}
-                        />
-                      </div>
-                      <div className="flex justify-between items-center text-[8px] text-zinc-500 font-mono mt-1.5 px-1 uppercase tracking-wider">
-                        <span>Telemetry Log Progress</span>
-                        <span>{pctDone}% done ({completedSetsInActiveSession}/{totalSetsInActiveSession} sets)</span>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-
-              {/* Workout Exercises */}
-              {sessionExercises.map((exercise) => {
-                const activeSubTab = exerciseSubTabs[exercise.id] || 'sets';
+              {/* Exercises Log Panel */}
+              <div className="lg:col-span-2 space-y-6">
                 
-                // Helper to change sub tab
-                const setSubTab = (tab) => {
-                  setExerciseSubTabs(prev => ({ ...prev, [exercise.id]: tab }));
-                };
+                {/* Dynamic Header */}
+                <div className="glass-panel rounded-3xl p-6 flex flex-col space-y-4 hover-card-glow">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                    <div className="flex-1">
+                      <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest block mb-1">Active Core Session</span>
+                      <input 
+                        type="text" 
+                        value={sessionName}
+                        onChange={(e) => setSessionName(e.target.value)}
+                        className="bg-transparent text-xl sm:text-2xl font-black text-white focus:outline-none border-b border-transparent focus:border-zinc-800 w-full"
+                      />
+                    </div>
 
-                // Calculate historical 1RM for this exercise
-                let maxHistorical1RM = 0;
-                const historicalDataPoints = [];
-                
-                // Read workouts in chronological order to plot history
-                const sortedHistory = [...workoutsHistory].sort((a, b) => new Date(a.date) - new Date(b.date));
-                sortedHistory.forEach(w => {
-                  const matchEx = w.exercises.find(e => e.id === exercise.id);
-                  if (matchEx) {
-                    const completedSets = matchEx.sets.filter(s => s.completed && s.weight > 0 && s.reps > 0);
-                    if (completedSets.length > 0) {
-                      const peak1RM = Math.max(...completedSets.map(s => calculate1RM(s.weight, s.reps)));
-                      if (peak1RM > maxHistorical1RM) maxHistorical1RM = peak1RM;
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-[#0c0d19]/40 border border-dark-border px-4 py-2.5 rounded-2xl text-center">
+                        <span className="text-[9px] text-zinc-500 uppercase font-bold block tracking-wider font-mono">ELAPSED TIME</span>
+                        <span className="font-mono font-black text-sm text-white tracking-wider">{formatTimeHHMMSS(sessionElapsed)}</span>
+                      </div>
                       
-                      historicalDataPoints.push({
-                         date: new Date(w.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-                        val: peak1RM
-                      });
-                    }
-                  }
-                });
-
-                // Fallback 1RM calculation if no history
-                if (maxHistorical1RM === 0) {
-                  exercise.sets.forEach(s => {
-                    const val = calculate1RM(s.weight, s.reps);
-                    if (val > maxHistorical1RM) maxHistorical1RM = val;
-                  });
-                }
-                if (maxHistorical1RM === 0) maxHistorical1RM = 100; // default benchmark
-
-                // Define Guide text dynamically
-                let guideText = "Perform this exercise with proper control. Keep your core tight, maintain standard form, and focus on the mind-muscle connection. Exhale on the exertion phase.";
-                if (exercise.name.toLowerCase().includes("bench press")) {
-                  guideText = "Retract your shoulder blades and keep them pinned to the bench. Keep your feet flat on the floor. Lower the barbell to your mid-chest (nipple line) under control, touch lightly, then drive the weight up. Avoid flaring elbows out past 75 degrees.";
-                } else if (exercise.name.toLowerCase().includes("squat")) {
-                  guideText = "Place the bar on your upper traps. Stand with feet slightly wider than shoulder-width. Break at the hips and lower down as if sitting in a chair. Go deep until your thighs are parallel to the floor or lower. Keep your chest up and drive up through your heels.";
-                } else if (exercise.name.toLowerCase().includes("deadlift")) {
-                  guideText = "Stand with feet hip-width apart, shins 1 inch from the bar. Grip the bar outside your shins. Flatten your back completely and drop your hips slightly. Pull the slack out of the bar, drag it up your shins, and extend your hips to stand up straight.";
-                } else if (exercise.name.toLowerCase().includes("pull-up")) {
-                  guideText = "Grip the bar slightly wider than shoulder-width, palms facing away. Start from a dead hang. Pull yourself up by driving your elbows down toward your ribs until your chin clears the bar. Lower yourself slowly to the starting position.";
-                } else if (exercise.name.toLowerCase().includes("overhead press")) {
-                  guideText = "Rest the bar on your front shoulders, grip slightly wider than shoulder width. Squeeze your glutes and core to stabilize your spine. Press the bar straight up overhead, moving your face back slightly to clear the bar, then lock out.";
-                } else if (exercise.name.toLowerCase().includes("curl")) {
-                  guideText = "Stand tall, keep elbows pinned close to your torso. Flex at the elbows to curl the weights up toward shoulders. Avoid using momentum or swinging your back. Lower the weight slowly, extending elbows fully.";
-                } else if (exercise.name.toLowerCase().includes("lateral raise")) {
-                  guideText = "Grip dumbbells at your sides. Lean forward very slightly. Raise arms out to the sides, leading with the elbows. Raise until arms are parallel to the floor, then lower under control. Keep a slight bend in elbows.";
-                } else if (exercise.name.toLowerCase().includes("pushdown")) {
-                  guideText = "Face the cable stack. Pull elbows to your sides and lock them there. Push the bar/rope down until elbows are fully extended, squeezing triceps at the bottom. Return with control, keeping elbows stationary.";
-                }
-
-                return (
-                  <div key={exercise.id} className="glass-panel rounded-3xl p-5 flex flex-col space-y-4 hover-card-glow relative overflow-hidden">
-                    
-                    {/* Subtle decorative background gradient node */}
-                    <div className="absolute -top-10 -right-10 w-24 h-24 bg-brand-primary/5 rounded-full blur-2xl pointer-events-none" />
-
-                    {/* Exercise Header */}
-                    <div className="flex justify-between items-start border-b border-dark-border pb-3">
-                      <div>
-                        <h3 className="text-md font-bold text-zinc-200 font-sans tracking-wide">{exercise.name}</h3>
-                        <span className="inline-block text-[9px] font-bold tracking-wider text-brand-secondary bg-brand-secondary/10 border border-brand-secondary/20 px-2 py-0.5 rounded mt-1.5 uppercase font-mono">
-                          {exercise.muscle}
-                        </span>
-                      </div>
-
                       <button 
-                        onClick={() => removeExerciseFromLiveSession(exercise.id)}
-                        className="text-zinc-500 hover:text-red-400 transition-colors p-1.5 hover:bg-red-950/20 rounded-xl cursor-pointer"
-                        title="Eject Exercise"
+                        onClick={() => setSessionActive(prev => !prev)}
+                        className={`py-2.5 px-4 rounded-2xl font-bold text-xs uppercase tracking-wider flex items-center space-x-2 transition-premium cursor-pointer ${
+                          sessionActive 
+                            ? 'bg-zinc-900 border-zinc-800 text-zinc-200' 
+                            : 'bg-zinc-950 hover:bg-zinc-900 text-brand-secondary border border-brand-secondary/40 hover:border-brand-secondary font-bold shadow-lg shadow-brand-secondary/5 active:scale-95'
+                        }`}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        {sessionActive ? (
+                          <>
+                            <Square className="w-3.5 h-3.5 fill-current" />
+                            <span>Freeze</span>
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-3.5 h-3.5 fill-current" />
+                            <span>Synchronize</span>
+                          </>
+                        )}
                       </button>
                     </div>
+                  </div>
 
-                    {/* Exercise Sub-Tabs */}
-                    <div className="flex space-x-1 border-b border-dark-border pb-2 text-[10px] font-bold uppercase tracking-wider">
-                      {['sets', 'insights', 'guide', 'history'].map((tab) => (
+                  {/* Progress bar */}
+                  {(() => {
+                    const totalSetsInActiveSession = sessionExercises.reduce((sum, ex) => sum + ex.sets.length, 0);
+                    const completedSetsInActiveSession = sessionExercises.reduce((sum, ex) => sum + ex.sets.filter(s => s.completed).length, 0);
+                    const pctDone = totalSetsInActiveSession > 0 ? Math.round((completedSetsInActiveSession / totalSetsInActiveSession) * 100) : 0;
+                    return (
+                      <div className="border-t border-dark-border pt-3">
+                        <div className="w-full bg-zinc-950 h-2 rounded-full overflow-hidden border border-zinc-900">
+                          <div 
+                            className="bg-gradient-to-r from-brand-primary via-brand-secondary to-[#ffffff] h-full transition-premium duration-500 ease-out"
+                            style={{ width: `${pctDone}%` }}
+                          />
+                        </div>
+                        <div className="flex justify-between items-center text-[8px] text-zinc-500 font-mono mt-1.5 px-1 uppercase tracking-wider">
+                          <span>Telemetry Log Progress</span>
+                          <span>{pctDone}% done ({completedSetsInActiveSession}/{totalSetsInActiveSession} sets)</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* Workout Exercises */}
+                {sessionExercises.map((exercise) => {
+                  const activeSubTab = exerciseSubTabs[exercise.id] || 'sets';
+                  
+                  const setSubTab = (tab) => {
+                    setExerciseSubTabs(prev => ({ ...prev, [exercise.id]: tab }));
+                  };
+
+                  let maxHistorical1RM = 0;
+                  const historicalDataPoints = [];
+                  
+                  const sortedHistory = [...workoutsHistory].sort((a, b) => new Date(a.date) - new Date(b.date));
+                  sortedHistory.forEach(w => {
+                    const matchEx = w.exercises.find(e => e.id === exercise.id);
+                    if (matchEx) {
+                      const completedSets = matchEx.sets.filter(s => s.completed && s.weight > 0 && s.reps > 0);
+                      if (completedSets.length > 0) {
+                        const peak1RM = Math.max(...completedSets.map(s => calculate1RM(s.weight, s.reps)));
+                        if (peak1RM > maxHistorical1RM) maxHistorical1RM = peak1RM;
+                        
+                        historicalDataPoints.push({
+                          date: new Date(w.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+                          val: peak1RM
+                        });
+                      }
+                    }
+                  });
+
+                  if (maxHistorical1RM === 0) {
+                    exercise.sets.forEach(s => {
+                      const val = calculate1RM(s.weight, s.reps);
+                      if (val > maxHistorical1RM) maxHistorical1RM = val;
+                    });
+                  }
+                  if (maxHistorical1RM === 0) maxHistorical1RM = 100;
+
+                  let guideText = "Perform this exercise with proper control. Keep your core tight, maintain standard form, and focus on the mind-muscle connection. Exhale on the exertion phase.";
+                  if (exercise.name.toLowerCase().includes("bench press")) {
+                    guideText = "Retract your shoulder blades and keep them pinned to the bench. Keep your feet flat on the floor. Lower the barbell to your mid-chest (nipple line) under control, touch lightly, then drive the weight up. Avoid flaring elbows out past 75 degrees.";
+                  } else if (exercise.name.toLowerCase().includes("squat")) {
+                    guideText = "Place the bar on your upper traps. Stand with feet slightly wider than shoulder-width. Break at the hips and lower down as if sitting in a chair. Go deep until your thighs are parallel to the floor or lower. Keep your chest up and drive up through your heels.";
+                  } else if (exercise.name.toLowerCase().includes("deadlift")) {
+                    guideText = "Stand with feet hip-width apart, shins 1 inch from the bar. Grip the bar outside your shins. Flatten your back completely and drop your hips slightly. Pull the slack out of the bar, drag it up your shins, and extend your hips to stand up straight.";
+                  } else if (exercise.name.toLowerCase().includes("pull-up")) {
+                    guideText = "Grip the bar slightly wider than shoulder-width, palms facing away. Start from a dead hang. Pull yourself up by driving your elbows down toward your ribs until your chin clears the bar. Lower yourself slowly to the starting position.";
+                  } else if (exercise.name.toLowerCase().includes("overhead press")) {
+                    guideText = "Rest the bar on your front shoulders, grip slightly wider than shoulder width. Squeeze your glutes and core to stabilize your spine. Press the bar straight up overhead, moving your face back slightly to clear the bar, then lock out.";
+                  } else if (exercise.name.toLowerCase().includes("curl")) {
+                    guideText = "Stand tall, keep elbows pinned close to your torso. Flex at the elbows to curl the weights up toward shoulders. Avoid using momentum or swinging your back. Lower the weight slowly, extending elbows fully.";
+                  } else if (exercise.name.toLowerCase().includes("lateral raise")) {
+                    guideText = "Grip dumbbells at your sides. Lean forward very slightly. Raise arms out to the sides, leading with the elbows. Raise until arms are parallel to the floor, then lower under control. Keep a slight bend in elbows.";
+                  } else if (exercise.name.toLowerCase().includes("pushdown")) {
+                    guideText = "Face the cable stack. Pull elbows to your sides and lock them there. Push the bar/rope down until elbows are fully extended, squeezing triceps at the bottom. Return with control, keeping elbows stationary.";
+                  }
+
+                  return (
+                    <div key={exercise.id} className="glass-panel rounded-3xl p-5 flex flex-col space-y-4 hover-card-glow relative overflow-hidden">
+                      
+                      <div className="absolute -top-10 -right-10 w-24 h-24 bg-brand-primary/5 rounded-full blur-2xl pointer-events-none" />
+
+                      {/* Exercise Header */}
+                      <div className="flex justify-between items-start border-b border-dark-border pb-3">
+                        <div>
+                          <h3 className="text-md font-bold text-zinc-200 font-sans tracking-wide">{exercise.name}</h3>
+                          <span className="inline-block text-[9px] font-bold tracking-wider text-brand-secondary bg-brand-secondary/10 border border-brand-secondary/20 px-2 py-0.5 rounded mt-1.5 uppercase font-mono">
+                            {exercise.muscle}
+                          </span>
+                        </div>
+
+                        <button 
+                          onClick={() => removeExerciseFromLiveSession(exercise.id)}
+                          className="text-zinc-500 hover:text-brand-accent transition-colors p-1.5 hover:bg-brand-accent/10 rounded-xl cursor-pointer"
+                          title="Eject Exercise"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {/* Exercise Sub-Tabs */}
+                      <div className="flex space-x-1 border-b border-dark-border pb-2 text-[10px] font-bold uppercase tracking-wider">
+                        {['sets', 'insights', 'guide', 'history'].map((tab) => (
+                          <button
+                            key={tab}
+                            onClick={() => setSubTab(tab)}
+                            className={`py-1.5 px-3 rounded-lg transition-premium cursor-pointer ${
+                              activeSubTab === tab 
+                                ? 'bg-zinc-950 border border-dark-border text-brand-secondary font-bold' 
+                                : 'text-zinc-500 hover:text-zinc-300'
+                            }`}
+                          >
+                            {tab}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Sub-Tab Contents */}
+                      {activeSubTab === 'sets' && (
+                        <div className="space-y-4">
+                          {/* Sets Table */}
+                          <div className="space-y-2">
+                            <div className="hidden sm:grid grid-cols-12 gap-2 text-[9px] font-bold text-zinc-500 tracking-wider uppercase px-2">
+                              <div className="col-span-2 text-center">Set</div>
+                              <div className="col-span-4 text-center">Weight (kg)</div>
+                              <div className="col-span-4 text-center">Reps</div>
+                              <div className="col-span-1 text-center">Done</div>
+                              <div className="col-span-1"></div>
+                            </div>
+
+                            {exercise.sets.map((set, index) => (
+                              <div 
+                                key={set.id} 
+                                className={`grid grid-cols-12 gap-y-3 gap-x-2 items-center p-3 sm:p-1.5 rounded-2xl border border-zinc-900/60 sm:border-transparent transition-premium ${
+                                  set.completed ? 'bg-brand-primary/5 border-brand-primary/10' : ''
+                                }`}
+                              >
+                                {/* Set Index */}
+                                <div className="col-span-2 sm:col-span-2 text-left sm:text-center px-1">
+                                  <span className="text-[10px] font-bold font-mono text-zinc-400">
+                                    Set {index + 1}
+                                  </span>
+                                </div>
+
+                                {/* Weight Input with +/- Buttons */}
+                                <div className="col-span-4 sm:col-span-4 flex items-center justify-start sm:justify-center space-x-1">
+                                  <button
+                                    type="button"
+                                    disabled={set.completed}
+                                    onClick={() => handleSetChange(exercise.id, set.id, 'weight', Math.max(0, (set.weight || 0) - 2.5))}
+                                    className="w-6 h-6 rounded-lg bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                                  >
+                                    <Minus className="w-3 h-3" />
+                                  </button>
+                                  <input 
+                                    type="number"
+                                    value={set.weight || ''}
+                                    onChange={(e) => handleSetChange(exercise.id, set.id, 'weight', parseFloat(e.target.value) || 0)}
+                                    disabled={set.completed}
+                                    className="w-14 bg-zinc-950 border border-zinc-900 rounded-lg py-1 font-mono text-xs text-white text-center focus:outline-none focus:border-brand-primary disabled:opacity-60"
+                                    placeholder="0"
+                                  />
+                                  <button
+                                    type="button"
+                                    disabled={set.completed}
+                                    onClick={() => handleSetChange(exercise.id, set.id, 'weight', (set.weight || 0) + 2.5)}
+                                    className="w-6 h-6 rounded-lg bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                  </button>
+                                </div>
+
+                                {/* Reps Input with +/- Buttons */}
+                                <div className="col-span-3 sm:col-span-4 flex items-center justify-start sm:justify-center space-x-1">
+                                  <button
+                                    type="button"
+                                    disabled={set.completed}
+                                    onClick={() => handleSetChange(exercise.id, set.id, 'reps', Math.max(0, (set.reps || 0) - 1))}
+                                    className="w-6 h-6 rounded-lg bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                                  >
+                                    <Minus className="w-3 h-3" />
+                                  </button>
+                                  <input 
+                                    type="number"
+                                    value={set.reps || ''}
+                                    onChange={(e) => handleSetChange(exercise.id, set.id, 'reps', parseInt(e.target.value) || 0)}
+                                    disabled={set.completed}
+                                    className="w-10 bg-zinc-950 border border-zinc-900 rounded-lg py-1 font-mono text-xs text-white text-center focus:outline-none focus:border-brand-primary disabled:opacity-60"
+                                    placeholder="0"
+                                  />
+                                  <button
+                                    type="button"
+                                    disabled={set.completed}
+                                    onClick={() => handleSetChange(exercise.id, set.id, 'reps', (set.reps || 0) + 1)}
+                                    className="w-6 h-6 rounded-lg bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                  </button>
+                                </div>
+
+                                {/* Complete Button */}
+                                <div className="col-span-2 sm:col-span-1 flex justify-end sm:justify-center">
+                                  <button 
+                                    onClick={() => toggleSetComplete(exercise.id, set.id)}
+                                    className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-premium active:scale-75 cursor-pointer ${
+                                      set.completed 
+                                        ? 'bg-brand-primary/20 border-brand-primary text-brand-primary shadow-[0_0_12px_rgba(139,92,246,0.25)]' 
+                                        : 'bg-zinc-950 border-zinc-800 text-zinc-600 hover:text-zinc-400'
+                                    }`}
+                                  >
+                                    <CheckCircle className="w-3.5 h-3.5 fill-current" />
+                                  </button>
+                                </div>
+
+                                {/* Set Delete */}
+                                <div className="col-span-1 flex justify-end sm:justify-center">
+                                  <button 
+                                    onClick={() => removeSetFromExercise(exercise.id, set.id)}
+                                    className="text-zinc-600 hover:text-brand-accent transition-colors cursor-pointer"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Add Set */}
+                          <button 
+                            onClick={() => addSetToExercise(exercise.id)}
+                            className="w-full py-2.5 border border-dashed border-zinc-800 hover:border-zinc-700 rounded-2xl flex items-center justify-center space-x-2 text-xs font-bold text-zinc-400 hover:text-zinc-200 transition-premium bg-zinc-900/10 cursor-pointer"
+                          >
+                            <Plus className="w-4 h-4" />
+                            <span>Add Exercise Set</span>
+                          </button>
+                        </div>
+                      )}
+
+                      {activeSubTab === 'insights' && (
+                        <div className="space-y-4">
+                          <div className="bg-[#0c0d19]/40 border border-dark-border rounded-2xl p-4 flex justify-between items-center">
+                            <div>
+                              <span className="text-[10px] text-zinc-500 font-bold uppercase block">Est. 1-Rep Max</span>
+                              <span className="text-xl font-display font-black text-brand-secondary mt-1 block">{maxHistorical1RM} kg</span>
+                            </div>
+                            
+                            <div className="text-right">
+                              <span className="text-[10px] text-zinc-500 font-bold uppercase block">Peak Session Vol</span>
+                              <span className="text-sm font-mono font-bold text-white mt-1 block">
+                                {Math.round(exercise.sets.reduce((sum, s) => sum + (s.completed ? s.weight * s.reps : 0), 0))} kg
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* %1RM Progressive Overload Table */}
+                          <div className="space-y-2">
+                            <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-1">Progressive Overload Target Table</h4>
+                            <div className="grid grid-cols-5 gap-2 text-center text-[10px] font-mono">
+                              {[100, 90, 85, 80, 75].map((pct) => (
+                                <div key={pct} className="bg-zinc-950/40 border border-dark-border p-2 rounded-xl">
+                                  <span className="text-[9px] text-zinc-500 font-bold block">{pct}% 1RM</span>
+                                  <span className="text-xs font-bold text-zinc-200 mt-1 block">{Math.round(maxHistorical1RM * (pct / 100))} kg</span>
+                                  <span className="text-[8px] text-zinc-600 block mt-0.5">
+                                    {pct === 100 ? '1 rep' : pct === 90 ? '4-5 reps' : pct === 85 ? '6-7 reps' : pct === 80 ? '8-10 reps' : '10-12 reps'}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                           {/* Mini SVG progression chart */}
+                           {historicalDataPoints.length > 1 && (
+                             <div className="space-y-1">
+                               <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-1">Historical Max progression</h4>
+                               <div className="bg-[#0c0d19]/40 border border-dark-border p-3 rounded-2xl">
+                                 <svg viewBox="0 0 400 100" className="w-full h-auto overflow-visible">
+                                   <path
+                                     d={historicalDataPoints.map((pt, i) => {
+                                       const x = 30 + (i * 340) / (historicalDataPoints.length - 1);
+                                       const y = 80 - ((pt.val - 40) / 160) * 60;
+                                       return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+                                     }).join(' ')}
+                                     fill="none"
+                                     stroke="#06b6d4"
+                                     strokeWidth="2.5"
+                                     strokeLinecap="round"
+                                   />
+                                   {historicalDataPoints.map((pt, i) => {
+                                     const x = 30 + (i * 340) / (historicalDataPoints.length - 1);
+                                     const y = 80 - ((pt.val - 40) / 160) * 60;
+                                     return (
+                                       <g key={i}>
+                                         <circle cx={x} cy={y} r="3.5" fill="#020202" stroke="#06b6d4" strokeWidth="2" />
+                                         <text x={x} y={y - 8} textAnchor="middle" fill="#ffffff" fontSize="7" fontWeight="bold" className="font-mono">{pt.val}kg</text>
+                                         <text x={x} y="95" textAnchor="middle" fill="#71717a" fontSize="6" fontWeight="bold">{pt.date}</text>
+                                       </g>
+                                     );
+                                   })}
+                                 </svg>
+                               </div>
+                             </div>
+                           )}
+                        </div>
+                      )}
+
+                      {activeSubTab === 'guide' && (
+                        <div className="p-4 bg-[#0c0d19]/80 border border-dark-border rounded-2xl flex items-start space-x-3">
+                          <BookOpen className="w-5 h-5 text-brand-secondary flex-shrink-0 mt-0.5" />
+                          <div>
+                            <span className="text-[10px] text-brand-secondary uppercase font-bold block tracking-wider">EXECUTION INSTRUCTION</span>
+                            <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">{guideText}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {activeSubTab === 'history' && (
+                        <div className="space-y-2">
+                          <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-1">Past Logs (Last 4 sessions)</h4>
+                          
+                          {(() => {
+                            const specificHistory = workoutsHistory
+                              .filter(w => w.exercises.some(e => e.id === exercise.id))
+                              .sort((a, b) => new Date(b.date) - new Date(a.date))
+                              .slice(0, 4);
+
+                            if (specificHistory.length === 0) {
+                              return (
+                                <div className="py-6 border border-dashed border-zinc-800 rounded-2xl text-center text-xs text-zinc-600 bg-zinc-900/10">
+                                  No past logs found in database. Complete this workout to log telemetry.
+                                </div>
+                              );
+                            }
+
+                            return (
+                              <div className="space-y-1.5">
+                                {specificHistory.map((hWorkout) => {
+                                  const hEx = hWorkout.exercises.find(e => e.id === exercise.id);
+                                  return (
+                                    <div key={hWorkout.id} className="bg-zinc-950/40 border border-dark-border p-3 rounded-2xl flex justify-between items-center font-mono">
+                                      <div>
+                                        <span className="text-[9px] text-brand-secondary font-bold block uppercase">
+                                          {new Date(hWorkout.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                        </span>
+                                        <span className="text-[10px] text-zinc-400 block mt-0.5">{hWorkout.name}</span>
+                                      </div>
+                                      <div className="flex space-x-2">
+                                        {hEx.sets.map((s, sIdx) => (
+                                          <span key={sIdx} className="text-[9px] bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded text-zinc-300">
+                                            {s.weight}kg x{s.reps}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      )}
+
+                    </div>
+                  );
+                })}
+
+                {/* Action Buttons */}
+                <div className="flex gap-4">
+                  <button 
+                    onClick={() => setShowAddExModal(true)}
+                    className="flex-1 py-4 border border-dashed border-brand-primary/20 hover:border-brand-primary/40 rounded-3xl flex items-center justify-center space-x-2 text-xs font-bold uppercase tracking-wider text-brand-primary hover:text-white transition-colors bg-zinc-950/5 cursor-pointer"
+                  >
+                    <ListPlus className="w-4.5 h-4.5" />
+                    <span>Append Exercise to session</span>
+                  </button>
+
+                  <button 
+                    onClick={finishSession}
+                    className="py-4 px-8 bg-zinc-950 hover:bg-zinc-900 text-brand-accent border border-brand-accent/40 hover:border-brand-accent font-bold text-xs uppercase tracking-wider rounded-3xl shadow-lg shadow-brand-accent/5 active:scale-95 transition-premium flex items-center space-x-2 cursor-pointer"
+                  >
+                    <Award className="w-4.5 h-4.5" />
+                    <span>LOG SESSION DATA</span>
+                  </button>
+                </div>
+
+              </div>
+
+              {/* Rest & Telemetry Sidebar Panel */}
+              <div className="lg:col-span-1 space-y-6">
+                
+                {/* Dynamic Rest Countdown */}
+                <div className="glass-panel rounded-3xl p-6 flex flex-col items-center justify-center text-center space-y-6 hover-card-glow">
+                  <div>
+                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Rest Timer Interface</h3>
+                    <p className="text-[9px] text-zinc-600 mt-0.5">ATP fiber reloading cycle</p>
+                  </div>
+
+                  {/* SVG Countdown */}
+                  <div className="relative w-36 h-36 flex items-center justify-center">
+                    <svg className="w-full h-full transform -rotate-90">
+                      <circle cx="72" cy="72" r="40" stroke="rgba(255,255,255,0.02)" strokeWidth="6" fill="transparent" />
+                      <circle 
+                        cx="72" cy="72" r="40" 
+                        stroke={isResting ? '#06b6d4' : 'rgba(255,255,255,0.06)'} 
+                        strokeWidth="6" fill="transparent" 
+                        strokeDasharray={strokeDash} 
+                        strokeDashoffset={strokeOffset} 
+                        strokeLinecap="round"
+                        className="transition-all duration-1000 ease-linear"
+                        style={{ filter: isResting ? 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.35))' : 'none' }}
+                      />
+                    </svg>
+                    
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-3.5xl font-display font-black text-white tracking-tighter">
+                        {isResting ? restTimer : initialRestDuration}
+                      </span>
+                      <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-wider">SECONDS</span>
+                    </div>
+                  </div>
+
+                  {/* Presets and sound test */}
+                  <div className="w-full space-y-3">
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {[30, 60, 90, 120].map(sec => (
                         <button
-                          key={tab}
-                          onClick={() => setSubTab(tab)}
-                          className={`py-1.5 px-3 rounded-lg transition-premium cursor-pointer ${
-                            activeSubTab === tab 
-                              ? 'bg-zinc-900 border border-zinc-800 text-brand-accent' 
-                              : 'text-zinc-500 hover:text-zinc-300'
+                          key={sec}
+                          onClick={() => {
+                            setInitialRestDuration(sec);
+                            setRestTimer(sec);
+                            setIsResting(true);
+                          }}
+                          className={`py-1.5 px-1 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-colors border cursor-pointer ${
+                            initialRestDuration === sec && isResting
+                              ? 'bg-brand-primary/15 border-brand-primary/30 text-brand-primary'
+                              : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
                           }`}
                         >
-                          {tab}
+                          {sec}s
                         </button>
                       ))}
                     </div>
 
-                    {/* Sub-Tab Contents */}
-                    {activeSubTab === 'sets' && (
-                      <div className="space-y-4">
-                        {/* Sets Table */}
-                        <div className="space-y-2">
-                          <div className="hidden sm:grid grid-cols-12 gap-2 text-[9px] font-bold text-zinc-500 tracking-wider uppercase px-2">
-                            <div className="col-span-1 text-center">Set</div>
-                            <div className="col-span-3 text-center">Type</div>
-                            <div className="col-span-3 text-center">Weight (kg)</div>
-                            <div className="col-span-3 text-center">Reps</div>
-                            <div className="col-span-1 text-center">Done</div>
-                            <div className="col-span-1"></div>
-                          </div>
-
-                          {exercise.sets.map((set, index) => (
-                            <div 
-                              key={set.id} 
-                              className={`grid grid-cols-12 gap-y-3 gap-x-2 items-center p-3 sm:p-1 rounded-2xl border border-zinc-900/60 sm:border-transparent transition-premium ${
-                                set.completed ? 'bg-[#c5a880]/5 border-[#c5a880]/10' : ''
-                              }`}
-                            >
-                              {/* Set Index */}
-                              <div className="col-span-2 sm:col-span-1 text-left sm:text-center px-1">
-                                <span className="text-[10px] font-bold font-mono text-zinc-400">
-                                  Set {index + 1}
-                                </span>
-                              </div>
-
-                              {/* Set Type Segmented Control */}
-                              <div className="col-span-10 sm:col-span-3 flex justify-start sm:justify-center space-x-1">
-                                {['W', 'N', 'D', 'F'].map((tLetter) => {
-                                  const tMap = { 'W': 'WarmUp', 'N': 'Normal', 'D': 'DropSet', 'F': 'Failure' };
-                                  const tName = tMap[tLetter];
-                                  const isSelected = (set.type || 'Normal') === tName;
-                                  let btnColors = 'bg-zinc-950/20 border-zinc-900 text-zinc-500 hover:text-zinc-300';
-                                  if (isSelected) {
-                                    if (tLetter === 'W') btnColors = 'bg-[#8c7853]/15 border-[#8c7853]/30 text-[#c5a880] font-extrabold';
-                                    if (tLetter === 'N') btnColors = 'bg-[#e4e4e7]/10 border-[#e4e4e7]/20 text-[#e4e4e7] font-extrabold';
-                                    if (tLetter === 'D') btnColors = 'bg-brand-accent/15 border-brand-accent/30 text-brand-accent font-extrabold';
-                                    if (tLetter === 'F') btnColors = 'bg-[#991b1b]/15 border-[#991b1b]/30 text-[#ef4444] font-extrabold';
-                                  }
-                                  return (
-                                    <button
-                                      key={tLetter}
-                                      type="button"
-                                      disabled={set.completed}
-                                      onClick={() => handleSetChange(exercise.id, set.id, 'type', tName)}
-                                      className={`w-6 h-6 rounded-lg border text-[9px] font-bold flex items-center justify-center transition-premium cursor-pointer ${btnColors}`}
-                                      title={tName}
-                                    >
-                                      {tLetter}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-
-                              {/* Weight Input with +/- Buttons */}
-                              <div className="col-span-5 sm:col-span-3 flex items-center justify-start sm:justify-center space-x-1">
-                                <button
-                                  type="button"
-                                  disabled={set.completed}
-                                  onClick={() => handleSetChange(exercise.id, set.id, 'weight', Math.max(0, (set.weight || 0) - 2.5))}
-                                  className="w-6 h-6 rounded-lg bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                                >
-                                  <Minus className="w-3 h-3" />
-                                </button>
-                                <input 
-                                  type="number"
-                                  value={set.weight || ''}
-                                  onChange={(e) => handleSetChange(exercise.id, set.id, 'weight', parseFloat(e.target.value) || 0)}
-                                  disabled={set.completed}
-                                  className="w-12 bg-zinc-950 border border-zinc-900 rounded-lg py-1 font-mono text-xs text-white text-center focus:outline-none focus:border-brand-primary disabled:opacity-60"
-                                  placeholder="0"
-                                />
-                                <button
-                                  type="button"
-                                  disabled={set.completed}
-                                  onClick={() => handleSetChange(exercise.id, set.id, 'weight', (set.weight || 0) + 2.5)}
-                                  className="w-6 h-6 rounded-lg bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                                >
-                                  <Plus className="w-3 h-3" />
-                                </button>
-                              </div>
-
-                              {/* Reps Input with +/- Buttons */}
-                              <div className="col-span-4 sm:col-span-3 flex items-center justify-start sm:justify-center space-x-1">
-                                <button
-                                  type="button"
-                                  disabled={set.completed}
-                                  onClick={() => handleSetChange(exercise.id, set.id, 'reps', Math.max(0, (set.reps || 0) - 1))}
-                                  className="w-6 h-6 rounded-lg bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                                >
-                                  <Minus className="w-3 h-3" />
-                                </button>
-                                <input 
-                                  type="number"
-                                  value={set.reps || ''}
-                                  onChange={(e) => handleSetChange(exercise.id, set.id, 'reps', parseInt(e.target.value) || 0)}
-                                  disabled={set.completed}
-                                  className="w-10 bg-zinc-950 border border-zinc-900 rounded-lg py-1 font-mono text-xs text-white text-center focus:outline-none focus:border-brand-primary disabled:opacity-60"
-                                  placeholder="0"
-                                />
-                                <button
-                                  type="button"
-                                  disabled={set.completed}
-                                  onClick={() => handleSetChange(exercise.id, set.id, 'reps', (set.reps || 0) + 1)}
-                                  className="w-6 h-6 rounded-lg bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                                >
-                                  <Plus className="w-3 h-3" />
-                                </button>
-                              </div>
-
-                              {/* Complete Button */}
-                              <div className="col-span-2 sm:col-span-1 flex justify-end sm:justify-center">
-                                <button 
-                                  onClick={() => toggleSetComplete(exercise.id, set.id)}
-                                  className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-premium active:scale-75 cursor-pointer ${
-                                    set.completed 
-                                      ? 'bg-brand-accent/15 border-brand-accent text-brand-accent shadow-[0_0_12px_rgba(197,168,128,0.25)]' 
-                                      : 'bg-zinc-950 border-zinc-800 text-zinc-600 hover:text-zinc-400'
-                                  }`}
-                                >
-                                  <CheckCircle className="w-3.5 h-3.5 fill-current" />
-                                </button>
-                              </div>
-
-                              {/* Set Delete */}
-                              <div className="col-span-1 flex justify-end sm:justify-center">
-                                <button 
-                                  onClick={() => removeSetFromExercise(exercise.id, set.id)}
-                                  className="text-zinc-600 hover:text-red-400 transition-colors cursor-pointer"
-                                >
-                                  <X className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Add Set */}
-                        <button 
-                          onClick={() => addSetToExercise(exercise.id)}
-                          className="w-full py-2.5 border border-dashed border-zinc-800 hover:border-zinc-700 rounded-2xl flex items-center justify-center space-x-2 text-xs font-bold text-zinc-400 hover:text-zinc-200 transition-premium bg-zinc-900/10 cursor-pointer"
-                        >
-                          <Plus className="w-4 h-4" />
-                          <span>Add Exercise Set</span>
-                        </button>
-                      </div>
-                    )}
-
-                    {activeSubTab === 'insights' && (
-                      <div className="space-y-4">
-                        <div className="bg-[#121214]/60 border border-dark-border rounded-2xl p-4 flex justify-between items-center">
-                          <div>
-                            <span className="text-[10px] text-zinc-500 font-bold uppercase block">Est. 1-Rep Max</span>
-                            <span className="text-xl font-display font-black text-brand-secondary mt-1 block">{maxHistorical1RM} kg</span>
-                          </div>
-                          
-                          <div className="text-right">
-                            <span className="text-[10px] text-zinc-500 font-bold uppercase block">Peak Session Vol</span>
-                            <span className="text-sm font-mono font-bold text-white mt-1 block">
-                              {Math.round(exercise.sets.reduce((sum, s) => sum + (s.completed ? s.weight * s.reps : 0), 0))} kg
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* %1RM Progressive Overload Table */}
-                        <div className="space-y-2">
-                          <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-1">Progressive Overload Target Table</h4>
-                          <div className="grid grid-cols-5 gap-2 text-center text-[10px] font-mono">
-                            {[100, 90, 85, 80, 75].map((pct) => (
-                              <div key={pct} className="bg-zinc-950/40 border border-dark-border p-2 rounded-xl">
-                                <span className="text-[9px] text-zinc-500 font-bold block">{pct}% 1RM</span>
-                                <span className="text-xs font-bold text-zinc-200 mt-1 block">{Math.round(maxHistorical1RM * (pct / 100))} kg</span>
-                                <span className="text-[8px] text-zinc-600 block mt-0.5">
-                                  {pct === 100 ? '1 rep' : pct === 90 ? '4-5 reps' : pct === 85 ? '6-7 reps' : pct === 80 ? '8-10 reps' : '10-12 reps'}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                         {/* Mini SVG progression chart */}
-                         {historicalDataPoints.length > 1 && (
-                           <div className="space-y-1">
-                             <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-1">Historical Max progression</h4>
-                             <div className="bg-[#121214]/60 border border-dark-border p-3 rounded-2xl">
-                               <svg viewBox="0 0 400 100" className="w-full h-auto overflow-visible">
-                                 <path
-                                   d={historicalDataPoints.map((pt, i) => {
-                                     const x = 30 + (i * 340) / (historicalDataPoints.length - 1);
-                                     const y = 80 - ((pt.val - 40) / 160) * 60; // scaled
-                                     return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
-                                   }).join(' ')}
-                                   fill="none"
-                                   stroke="#c5a880"
-                                   strokeWidth="2.5"
-                                   strokeLinecap="round"
-                                 />
-                                 {historicalDataPoints.map((pt, i) => {
-                                   const x = 30 + (i * 340) / (historicalDataPoints.length - 1);
-                                   const y = 80 - ((pt.val - 40) / 160) * 60;
-                                   return (
-                                     <g key={i}>
-                                       <circle cx={x} cy={y} r="3.5" fill="#020202" stroke="#c5a880" strokeWidth="2" />
-                                       <text x={x} y={y - 8} textAnchor="middle" fill="#ffffff" fontSize="7" fontWeight="bold" className="font-mono">{pt.val}kg</text>
-                                       <text x={x} y="95" textAnchor="middle" fill="#71717a" fontSize="6" fontWeight="bold">{pt.date}</text>
-                                     </g>
-                                   );
-                                 })}
-                               </svg>
-                             </div>
-                           </div>
-                         )}
-                      </div>
-                    )}
-
-                    {activeSubTab === 'guide' && (
-                      <div className="p-4 bg-[#121214]/80 border border-dark-border rounded-2xl flex items-start space-x-3">
-                        <BookOpen className="w-5 h-5 text-brand-secondary flex-shrink-0 mt-0.5" />
-                        <div>
-                          <span className="text-[10px] text-brand-secondary uppercase font-bold block tracking-wider">EXECUTION INSTRUCTION</span>
-                          <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">{guideText}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {activeSubTab === 'history' && (
-                      <div className="space-y-2">
-                        <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-1">Past Logs (Last 4 sessions)</h4>
-                        
-                        {(() => {
-                          const specificHistory = workoutsHistory
-                            .filter(w => w.exercises.some(e => e.id === exercise.id))
-                            .sort((a, b) => new Date(b.date) - new Date(a.date))
-                            .slice(0, 4);
-
-                          if (specificHistory.length === 0) {
-                            return (
-                              <div className="py-6 border border-dashed border-zinc-800 rounded-2xl text-center text-xs text-zinc-600 bg-zinc-900/10">
-                                No past logs found in database. Complete this workout to log telemetry.
-                              </div>
-                            );
-                          }
-
-                          return (
-                            <div className="space-y-1.5">
-                              {specificHistory.map((hWorkout) => {
-                                const hEx = hWorkout.exercises.find(e => e.id === exercise.id);
-                                return (
-                                  <div key={hWorkout.id} className="bg-zinc-950/40 border border-dark-border p-3 rounded-2xl flex justify-between items-center font-mono">
-                                    <div>
-                                      <span className="text-[9px] text-brand-secondary font-bold block uppercase">
-                                        {new Date(hWorkout.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                      </span>
-                                      <span className="text-[10px] text-zinc-400 block mt-0.5">{hWorkout.name}</span>
-                                    </div>
-                                    <div className="flex space-x-2">
-                                      {hEx.sets.map((s, sIdx) => (
-                                        <span key={sIdx} className="text-[9px] bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded text-zinc-300">
-                                          {s.weight}kg x{s.reps}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    )}
-
-                  </div>
-                );
-              })}
-
-              {/* Action Buttons */}
-              <div className="flex gap-4">
-                <button 
-                  onClick={() => setShowAddExModal(true)}
-                  className="flex-1 py-4 border border-dashed border-brand-accent/20 hover:border-brand-accent/40 rounded-3xl flex items-center justify-center space-x-2 text-xs font-bold uppercase tracking-wider text-brand-accent hover:text-white transition-colors bg-zinc-950/5 cursor-pointer"
-                >
-                  <ListPlus className="w-4.5 h-4.5" />
-                  <span>Append Exercise to session</span>
-                </button>
-
-                <button 
-                  onClick={finishSession}
-                  className="py-4 px-8 bg-zinc-950 hover:bg-zinc-900 text-brand-accent border border-brand-accent/40 hover:border-brand-accent font-bold text-xs uppercase tracking-wider rounded-3xl shadow-lg shadow-brand-accent/5 active:scale-95 transition-premium flex items-center space-x-2 cursor-pointer"
-                >
-                  <Award className="w-4.5 h-4.5" />
-                  <span>LOG SESSION DATA</span>
-                </button>
-              </div>
-
-            </div>
-
-            {/* Rest & Telemetry Sidebar Panel */}
-            <div className="lg:col-span-1 space-y-6">
-              
-              {/* Dynamic Rest Countdown */}
-              <div className="glass-panel rounded-3xl p-6 flex flex-col items-center justify-center text-center space-y-6 hover-card-glow">
-                <div>
-                  <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Rest Timer Interface</h3>
-                  <p className="text-[9px] text-zinc-600 mt-0.5">ATP fiber reloading cycle</p>
-                </div>
-
-                {/* SVG Countdown */}
-                <div className="relative w-36 h-36 flex items-center justify-center">
-                  <svg className="w-full h-full transform -rotate-90">
-                    <circle cx="72" cy="72" r="40" stroke="rgba(255,255,255,0.02)" strokeWidth="6" fill="transparent" />
-                    <circle 
-                      cx="72" cy="72" r="40" 
-                      stroke={isResting ? '#c5a880' : 'rgba(255,255,255,0.06)'} 
-                      strokeWidth="6" fill="transparent" 
-                      strokeDasharray={strokeDash} 
-                      strokeDashoffset={strokeOffset} 
-                      strokeLinecap="round"
-                      className="transition-all duration-1000 ease-linear"
-                      style={{ filter: isResting ? 'drop-shadow(0 0 8px rgba(197, 168, 128, 0.35))' : 'none' }}
-                    />
-                  </svg>
-                  
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-3.5xl font-display font-black text-white tracking-tighter">
-                      {isResting ? restTimer : initialRestDuration}
-                    </span>
-                    <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-wider">SECONDS</span>
-                  </div>
-                </div>
-
-                {/* Presets and sound test */}
-                <div className="w-full space-y-3">
-                  <div className="grid grid-cols-4 gap-1.5">
-                    {[30, 60, 90, 120].map(sec => (
-                      <button
-                        key={sec}
+                    <div className="flex space-x-2">
+                      <button 
                         onClick={() => {
-                          setInitialRestDuration(sec);
-                          setRestTimer(sec);
-                          setIsResting(true);
+                          if (isResting) {
+                            setIsResting(false);
+                          } else {
+                            setRestTimer(initialRestDuration);
+                            setIsResting(true);
+                          }
                         }}
-                        className={`py-1.5 px-1 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-colors border cursor-pointer ${
-                          initialRestDuration === sec && isResting
-                            ? 'bg-[#8c7853]/15 border-[#c5a880]/30 text-[#c5a880]'
-                            : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                        className={`flex-1 py-2.5 px-3 rounded-xl text-[10px] uppercase font-bold tracking-wider cursor-pointer transition-premium ${
+                          isResting 
+                            ? 'bg-brand-primary/15 border border-brand-primary/30 text-brand-primary' 
+                            : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800'
                         }`}
                       >
-                        {sec}s
+                        {isResting ? "Suspend Rest" : "Start Interval"}
                       </button>
-                    ))}
-                  </div>
 
-                  <div className="flex space-x-2">
-                    <button 
-                      onClick={() => {
-                        if (isResting) {
-                          setIsResting(false);
-                        } else {
-                          setRestTimer(initialRestDuration);
-                          setIsResting(true);
-                        }
-                      }}
-                      className={`flex-1 py-2.5 px-3 rounded-xl text-[10px] uppercase font-bold tracking-wider cursor-pointer transition-premium ${
-                        isResting 
-                          ? 'bg-[#8c7853]/15 border border-[#c5a880]/30 text-[#c5a880]' 
-                          : 'bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-800'
-                      }`}
-                    >
-                      {isResting ? "Suspend Rest" : "Start Interval"}
-                    </button>
-
-                    <button 
-                      onClick={playRestChime}
-                      className="p-2.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-zinc-200 rounded-xl cursor-pointer"
-                      title="Test Audio Chime"
-                    >
-                      <Volume2 className="w-4 h-4" />
-                    </button>
+                      <button 
+                        onClick={playRestChime}
+                        className="p-2.5 bg-zinc-900 border border-zinc-800 hover:border-zinc-700 text-zinc-400 hover:text-zinc-200 rounded-xl cursor-pointer"
+                        title="Test Audio Chime"
+                      >
+                        <Volume2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Cyberpunk Live Stats Telemetry Card */}
-              <div className="glass-panel rounded-3xl p-5 flex flex-col space-y-4 hover-card-glow">
-                <div className="flex justify-between items-center border-b border-dark-border pb-2">
-                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">BIOMETRIC Telemetry</span>
-                  <span className="text-[9px] text-brand-primary font-mono">SYS-LINK: ONLINE</span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Heart className={`w-5 h-5 text-[#c53030] ${sessionActive ? 'animate-[pulse_0.8s_infinite]' : 'animate-pulse'}`} />
-                    <span className="text-xs font-bold text-zinc-300">Simulated Heart Rate</span>
+                {/* Cyberpunk Live Stats Telemetry Card */}
+                <div className="glass-panel rounded-3xl p-5 flex flex-col space-y-4 hover-card-glow">
+                  <div className="flex justify-between items-center border-b border-dark-border pb-2">
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">BIOMETRIC Telemetry</span>
+                    <span className="text-[9px] text-brand-primary font-mono">SYS-LINK: ONLINE</span>
                   </div>
-                  <span className="font-display font-bold text-sm text-[#c53030]">{simulatedHR} bpm</span>
+
+                  {/* Pulsing Cardiogram Row */}
+                  <div className="flex flex-col space-y-2 bg-[#0c0d19]/40 border border-dark-border p-3 rounded-2xl">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center space-x-2">
+                        <Heart className="w-4 h-4 text-brand-accent animate-[pulse_0.8s_infinite]" />
+                        <span className="text-xs font-bold text-zinc-300">Biometric Heart Wave</span>
+                      </div>
+                      <span className="font-mono font-bold text-sm text-brand-accent">{simulatedHR} bpm</span>
+                    </div>
+                    <svg viewBox="0 0 200 40" className="w-full h-8 overflow-visible">
+                      <path
+                        d={getHeartbeatPath()}
+                        fill="none"
+                        stroke="#f43f5e"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="drop-shadow-[0_0_4px_rgba(244,63,94,0.4)]"
+                      />
+                    </svg>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-zinc-950/20 rounded-2xl border border-dark-border">
+                    <div className="flex items-center space-x-2">
+                      <Flame className="w-4 h-4 text-brand-secondary animate-pulse" />
+                      <span className="text-xs font-bold text-zinc-300">Est. Intensity Rate</span>
+                    </div>
+                    <span className="font-display font-bold text-sm text-brand-secondary">
+                      {sessionExercises.length > 0
+                        ? Math.round(sessionExercises.reduce((sum, e) => sum + e.sets.filter(s => s.completed).length, 0) * 1.5 + 50)
+                        : 0} kcal
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-zinc-950/20 rounded-2xl border border-dark-border">
+                    <div className="flex items-center space-x-2">
+                      <Shield className="w-4 h-4 text-brand-primary" />
+                      <span className="text-xs font-bold text-zinc-300">Target Muscle Load</span>
+                    </div>
+                    <span className="font-display font-bold text-sm text-brand-primary">
+                      {Array.from(new Set(sessionExercises.map(e => e.muscle))).length} areas
+                    </span>
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Flame className="w-5 h-5 text-brand-accent animate-pulse" />
-                    <span className="text-xs font-bold text-zinc-300">Est. Intensity Rate</span>
-                  </div>
-                  <span className="font-display font-bold text-sm text-brand-accent">
-                    {sessionExercises.length > 0
-                      ? Math.round(sessionExercises.reduce((sum, e) => sum + e.sets.filter(s => s.completed).length, 0) * 1.5 + 50)
-                      : 0} kcal
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Shield className="w-5 h-5 text-brand-secondary" />
-                    <span className="text-xs font-bold text-zinc-300">Target Muscle Load</span>
-                  </div>
-                  <span className="font-display font-bold text-sm text-brand-secondary">
-                    {Array.from(new Set(sessionExercises.map(e => e.muscle))).length} areas
-                  </span>
-                </div>
               </div>
 
             </div>
-
-          </div>
+          )
         )}
       </main>
+
+      {/* Floating Active Session Dock (visible when active but on another tab) */}
+      {sessionActive && currentTab !== 'active-session' && (
+        <div 
+          onClick={() => setCurrentTab('active-session')}
+          className="fixed bottom-6 left-1/2 transform -translate-x-1/2 w-11/12 max-w-lg glass-panel-glow border-brand-primary/40 rounded-2xl p-4 flex items-center justify-between z-40 shadow-2xl hover:border-brand-primary transition-all duration-300 cursor-pointer animate-float"
+        >
+          <div className="flex items-center space-x-3">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-accent opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-brand-accent"></span>
+            </span>
+            <div>
+              <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest block font-mono">ACTIVE WORKOUT TRACKING</span>
+              <span className="text-xs font-bold text-white truncate max-w-[200px] block">{sessionName}</span>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3.5">
+            <span className="font-mono font-bold text-sm text-brand-secondary">
+              {formatTimeHHMMSS(sessionElapsed)}
+            </span>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                setCurrentTab('active-session');
+              }}
+              className="py-1.5 px-3.5 bg-brand-primary hover:bg-brand-primary/80 text-white font-bold text-[10px] uppercase tracking-wider rounded-xl transition-premium cursor-pointer"
+            >
+              Resume
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Modal: Append Exercise */}
       {showAddExModal && (
@@ -1225,7 +1326,7 @@ export default function App() {
                 <h2 className="text-lg font-display font-black text-white tracking-wide">WORKOUT TELEMETRY LOG</h2>
               </div>
               <div className="p-2 bg-brand-accent/10 border border-brand-accent/20 rounded-full">
-                <Award className="w-6 h-6 text-brand-accent drop-shadow-[0_0_8px_rgba(197,168,128,0.25)]" />
+                <Award className="w-6 h-6 text-brand-accent drop-shadow-[0_0_8px_rgba(244,63,94,0.25)]" />
               </div>
             </div>
 
@@ -1260,11 +1361,11 @@ export default function App() {
               return (
                 <div className="space-y-1.5">
                   <div className="flex justify-between text-[9px] font-bold text-zinc-400 font-mono">
-                    <span className="text-zinc-200">ACTIVE: {activeMin}m ({activePct}%)</span>
-                    <span className="text-brand-accent">REST: {restMin}m ({restPct}%)</span>
+                    <span className="text-zinc-200 font-semibold">ACTIVE: {activeMin}m ({activePct}%)</span>
+                    <span className="text-brand-accent font-semibold">REST: {restMin}m ({restPct}%)</span>
                   </div>
                   <div className="w-full h-3 rounded-full overflow-hidden flex border border-dark-border">
-                    <div className="bg-zinc-200 h-full" style={{ width: `${activePct}%` }} />
+                    <div className="bg-brand-primary h-full" style={{ width: `${activePct}%` }} />
                     <div className="bg-brand-accent h-full" style={{ width: `${restPct}%` }} />
                   </div>
                 </div>
@@ -1282,7 +1383,7 @@ export default function App() {
               return (
                 <div className="space-y-2">
                   <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Target Muscle Distribution</h3>
-                  <div className="space-y-1.5 bg-[#121214]/60 border border-dark-border p-3 rounded-2xl">
+                  <div className="space-y-1.5 bg-[#0c0d19]/60 border border-dark-border p-3 rounded-2xl">
                     {Object.entries(setsPerMuscle).map(([muscle, count]) => {
                       const pct = Math.round((count / maxSets) * 100);
                       return (
@@ -1309,36 +1410,33 @@ export default function App() {
               {completedWorkoutSummary.heartRates && completedWorkoutSummary.heartRates.length > 0 && (
                 <div className="space-y-1.5">
                   <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">HR Telemetry Log</h3>
-                  <div className="bg-[#121214]/60 border border-dark-border p-3.5 rounded-2xl flex flex-col justify-center h-[120px]">
+                  <div className="bg-[#0c0d19]/60 border border-dark-border p-3.5 rounded-2xl flex flex-col justify-center h-[120px]">
                     <svg viewBox="0 0 200 80" className="w-full h-full overflow-visible">
                       <defs>
                         <linearGradient id="hrGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#c53030" stopOpacity="0.12" />
-                          <stop offset="100%" stopColor="#c53030" stopOpacity="0" />
+                          <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.12" />
+                          <stop offset="100%" stopColor="#f43f5e" stopOpacity="0" />
                         </linearGradient>
                       </defs>
                       
-                      {/* Grid Line */}
-                      <line x1="0" y1="40" x2="200" y2="40" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" strokeDasharray="2 2" />
+                      <line x1="0" y1="40" x2="200" y2="40" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" strokeDasharray="2 2" />
                       
-                      {/* Path */}
                       <path
                         d={(() => {
                           const points = completedWorkoutSummary.heartRates;
                           return points.map((val, idx) => {
                             const x = (idx * 200) / (points.length - 1 || 1);
-                            const y = 70 - ((val - 60) / 90) * 60; // scale 60 - 150 bpm
+                            const y = 70 - ((val - 60) / 90) * 60;
                             return `${idx === 0 ? 'M' : 'L'} ${x} ${y}`;
                           }).join(' ');
                         })()}
                         fill="none"
-                        stroke="#c53030"
-                        strokeWidth="2.5"
+                        stroke="#f43f5e"
+                        strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
 
-                      {/* Area Fill */}
                       <path
                         d={(() => {
                           const points = completedWorkoutSummary.heartRates;
@@ -1352,8 +1450,7 @@ export default function App() {
                         fill="url(#hrGrad)"
                       />
                       
-                      {/* Labels */}
-                      <text x="5" y="10" fill="#ef4444" fontSize="6" fontWeight="bold" className="font-mono">
+                      <text x="5" y="10" fill="#f43f5e" fontSize="6" fontWeight="bold" className="font-mono">
                         Max: {Math.max(...completedWorkoutSummary.heartRates)} bpm
                       </text>
                       <text x="5" y="76" fill="#71717a" fontSize="6" fontWeight="bold" className="font-mono">
@@ -1368,13 +1465,13 @@ export default function App() {
               {completedWorkoutSummary.heartRates && (
                 <div className="space-y-1.5">
                   <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">HR Training Zones</h3>
-                  <div className="bg-[#121214]/60 border border-dark-border p-3 rounded-2xl flex flex-col justify-between h-[120px] text-[8px] font-mono">
+                  <div className="bg-[#0c0d19]/60 border border-dark-border p-3 rounded-2xl flex flex-col justify-between h-[120px] text-[8px] font-mono">
                     {(() => {
                       const zones = [
-                        { name: "Peak (Anaerobic)", min: 135, max: 200, color: "bg-[#991b1b]" },
-                        { name: "Cardio (Aerobic)", min: 115, max: 135, color: "bg-[#c5a880]" },
-                        { name: "Fat Burn", min: 90, max: 115, color: "bg-[#a1a1aa]" },
-                        { name: "Warm-up / Rest", min: 0, max: 90, color: "bg-[#27272a]" }
+                        { name: "Peak (Anaerobic)", min: 135, max: 200, color: "bg-brand-accent" },
+                        { name: "Cardio (Aerobic)", min: 115, max: 135, color: "bg-brand-primary" },
+                        { name: "Fat Burn", min: 90, max: 115, color: "bg-brand-secondary" },
+                        { name: "Warm-up / Rest", min: 0, max: 90, color: "bg-zinc-800" }
                       ];
 
                       const totalLogs = completedWorkoutSummary.heartRates.length || 1;
@@ -1402,7 +1499,7 @@ export default function App() {
             {/* Close button */}
             <button 
               onClick={() => setShowCelebration(false)}
-              className="w-full py-3 bg-zinc-950 hover:bg-zinc-900 text-brand-accent border border-brand-accent/40 hover:border-brand-accent font-bold text-xs uppercase tracking-wider rounded-2xl cursor-pointer shadow-lg shadow-brand-accent/5 active:scale-95 transition-premium"
+              className="w-full py-3 bg-zinc-950 hover:bg-zinc-900 text-brand-secondary border border-brand-secondary/40 hover:border-brand-secondary font-bold text-xs uppercase tracking-wider rounded-2xl cursor-pointer shadow-lg shadow-brand-secondary/5 active:scale-95 transition-premium"
             >
               CLOSE WORKOUT TELEMETRY MATRIX
             </button>
@@ -1413,4 +1510,3 @@ export default function App() {
     </div>
   );
 }
-
