@@ -161,19 +161,19 @@ export default function AnalyticsView({ workouts, exercises }) {
     const chartHeight = height - 2 * padding;
 
     return (
-      <div className="relative bg-[#09090b]/60 border border-dark-border rounded-3xl p-4 shadow-2xl hover-card-glow">
+      <div className="relative bg-[#0a0a0c]/60 border border-dark-border rounded-3xl p-4 shadow-2xl hover-card-glow">
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
           <defs>
             <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#f4f4f5" />
-              <stop offset="100%" stopColor="#2a2a30" />
+              <stop offset="0%" stopColor="#c5a880" />
+              <stop offset="100%" stopColor="#16161a" />
             </linearGradient>
           </defs>
 
           {/* Grid lines */}
-          <line x1={padding} y1={padding} x2={width - padding} y2={padding} stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" strokeDasharray="3 3" />
-          <line x1={padding} y1={height / 2} x2={width - padding} y2={height / 2} stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" strokeDasharray="3 3" />
-          <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+          <line x1={padding} y1={padding} x2={width - padding} y2={padding} stroke="rgba(255,255,255,0.015)" strokeWidth="0.5" strokeDasharray="3 3" />
+          <line x1={padding} y1={height / 2} x2={width - padding} y2={height / 2} stroke="rgba(255,255,255,0.015)" strokeWidth="0.5" strokeDasharray="3 3" />
+          <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
 
           {/* Bars */}
           {data.map((d, index) => {
@@ -185,10 +185,10 @@ export default function AnalyticsView({ workouts, exercises }) {
             return (
               <g key={index} className="group cursor-pointer">
                 <rect x={x} y={y} width={barWidth} height={barHeight} rx="3" fill="url(#barGradient)" className="transition-all hover:opacity-80" />
-                <text x={x + barWidth / 2} y={y - 8} textAnchor="middle" fill="#cbd5e1" fontSize="9" fontWeight="bold" className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none font-mono">
+                <text x={x + barWidth / 2} y={y - 8} textAnchor="middle" fill="#e4e4e7" fontSize="9" fontWeight="bold" className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none font-mono">
                   {d.val} kg
                 </text>
-                <text x={x + barWidth / 2} y={height - padding + 15} textAnchor="middle" fill="#64748b" fontSize="8" fontWeight="500" className="font-mono">
+                <text x={x + barWidth / 2} y={height - padding + 15} textAnchor="middle" fill="#52525b" fontSize="8" fontWeight="500" className="font-mono">
                   {d.date}
                 </text>
               </g>
@@ -205,9 +205,9 @@ export default function AnalyticsView({ workouts, exercises }) {
       {/* Vitals Telemetry Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         
-        <div className="bg-[#09090b]/60 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
-          <div className="p-3 bg-slate-900 border border-zinc-800 rounded-2xl">
-            <Calendar className="w-5 h-5 text-slate-300" />
+        <div className="bg-[#0a0a0c]/60 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
+          <div className="p-3 bg-zinc-950 border border-dark-border rounded-2xl">
+            <Calendar className="w-5 h-5 text-zinc-300" />
           </div>
           <div>
             <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">Total Sessions</p>
@@ -215,9 +215,9 @@ export default function AnalyticsView({ workouts, exercises }) {
           </div>
         </div>
 
-        <div className="bg-[#09090b]/60 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
-          <div className="p-3 bg-slate-900 border border-zinc-800 rounded-2xl">
-            <Dumbbell className="w-5 h-5 text-slate-300" />
+        <div className="bg-[#0a0a0c]/60 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
+          <div className="p-3 bg-zinc-950 border border-dark-border rounded-2xl">
+            <Dumbbell className="w-5 h-5 text-zinc-300" />
           </div>
           <div>
             <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">Total Weight</p>
@@ -225,9 +225,9 @@ export default function AnalyticsView({ workouts, exercises }) {
           </div>
         </div>
 
-        <div className="bg-[#09090b]/60 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
-          <div className="p-3 bg-slate-900 border border-zinc-800 rounded-2xl">
-            <Clock className="w-5 h-5 text-slate-300" />
+        <div className="bg-[#0a0a0c]/60 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
+          <div className="p-3 bg-zinc-950 border border-dark-border rounded-2xl">
+            <Clock className="w-5 h-5 text-zinc-300" />
           </div>
           <div>
             <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">Avg. Duration</p>
@@ -235,13 +235,13 @@ export default function AnalyticsView({ workouts, exercises }) {
           </div>
         </div>
 
-        <div className="bg-[#09090b]/60 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
-          <div className="p-3 bg-slate-900 border border-zinc-800 rounded-2xl">
-            <TrendingUp className="w-5 h-5 text-slate-300" />
+        <div className="bg-[#0a0a0c]/60 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
+          <div className="p-3 bg-zinc-950 border border-dark-border rounded-2xl">
+            <TrendingUp className="w-5 h-5 text-zinc-300" />
           </div>
           <div>
             <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold">Progress State</p>
-            <h3 className="text-xl font-bold text-[#38bdf8] mt-0.5">Optimal</h3>
+            <h3 className="text-xl font-bold text-brand-accent mt-0.5">Optimal</h3>
           </div>
         </div>
 
