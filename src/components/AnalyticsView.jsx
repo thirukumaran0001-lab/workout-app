@@ -105,12 +105,12 @@ export default function AnalyticsView({ workouts, exercises }) {
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
           <defs>
             <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.15" />
-              <stop offset="100%" stopColor="#00f0ff" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#f4f4f5" stopOpacity="0.06" />
+              <stop offset="100%" stopColor="#f4f4f5" stopOpacity="0.0" />
             </linearGradient>
             <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#00f0ff" />
-              <stop offset="100%" stopColor="#9d4edd" />
+              <stop offset="0%" stopColor="#71717a" />
+              <stop offset="100%" stopColor="#f4f4f5" />
             </linearGradient>
           </defs>
 
@@ -165,8 +165,8 @@ export default function AnalyticsView({ workouts, exercises }) {
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
           <defs>
             <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#00f5a0" />
-              <stop offset="100%" stopColor="#8b5cf6" />
+              <stop offset="0%" stopColor="#f4f4f5" />
+              <stop offset="100%" stopColor="#2a2a30" />
             </linearGradient>
           </defs>
 

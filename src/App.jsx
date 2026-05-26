@@ -1450,8 +1450,8 @@ export default function App() {
                     <svg viewBox="0 0 200 80" className="w-full h-full overflow-visible">
                       <defs>
                         <linearGradient id="hrGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.3" />
-                          <stop offset="100%" stopColor="#f43f5e" stopOpacity="0" />
+                          <stop offset="0%" stopColor="#f4f4f5" stopOpacity="0.12" />
+                          <stop offset="100%" stopColor="#f4f4f5" stopOpacity="0" />
                         </linearGradient>
                       </defs>
                       
@@ -1469,7 +1469,7 @@ export default function App() {
                           }).join(' ');
                         })()}
                         fill="none"
-                        stroke="#f43f5e"
+                        stroke="#f4f4f5"
                         strokeWidth="2.5"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -1490,7 +1490,7 @@ export default function App() {
                       />
                       
                       {/* Labels */}
-                      <text x="5" y="10" fill="#f43f5e" fontSize="6" fontWeight="bold" className="font-mono">
+                      <text x="5" y="10" fill="#f4f4f5" fontSize="6" fontWeight="bold" className="font-mono">
                         Max: {Math.max(...completedWorkoutSummary.heartRates)} bpm
                       </text>
                       <text x="5" y="76" fill="#71717a" fontSize="6" fontWeight="bold" className="font-mono">

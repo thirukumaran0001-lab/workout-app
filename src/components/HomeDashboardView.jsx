@@ -127,13 +127,13 @@ export default function HomeDashboardView({ workouts, onStartRoutine, setActiveT
       <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
         <defs>
           <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#00f5a0" stopOpacity="0.15" />
-            <stop offset="100%" stopColor="#00f5a0" stopOpacity="0" />
+            <stop offset="0%" stopColor="#f4f4f5" stopOpacity="0.06" />
+            <stop offset="100%" stopColor="#f4f4f5" stopOpacity="0" />
           </linearGradient>
           <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#00f5a0" />
-            <stop offset="50%" stopColor="#00f0ff" />
-            <stop offset="100%" stopColor="#9d4edd" />
+            <stop offset="0%" stopColor="#71717a" />
+            <stop offset="50%" stopColor="#f4f4f5" />
+            <stop offset="100%" stopColor="#a1a1aa" />
           </linearGradient>
         </defs>
 

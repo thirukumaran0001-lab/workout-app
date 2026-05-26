@@ -186,12 +186,12 @@ export default function HistoryView({ workouts }) {
                           <svg viewBox="0 0 200 50" className="w-full h-full overflow-visible">
                             <defs>
                               <linearGradient id={`hrGrad-${workout.id}`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#ff3e6c" stopOpacity="0.25" />
-                                <stop offset="100%" stopColor="#ff3e6c" stopOpacity="0" />
+                                <stop offset="0%" stopColor="#f4f4f5" stopOpacity="0.08" />
+                                <stop offset="100%" stopColor="#f4f4f5" stopOpacity="0" />
                               </linearGradient>
                             </defs>
                             <path d={hrChart.areaPath} fill={`url(#hrGrad-${workout.id})`} />
-                            <path d={hrChart.path} fill="none" stroke="#ff3e6c" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d={hrChart.path} fill="none" stroke="#f4f4f5" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                             
                             {/* Peak indicator dot */}
                             {hrChart.coords.length > 0 && (() => {
