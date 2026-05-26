@@ -1,6 +1,6 @@
 {
   "name": "Flat push",
-  "elapsed": 7,
+  "elapsed": 0,
   "isActive": false,
   "exercises": [
     {
@@ -11,32 +11,32 @@
         {
           "id": 1779789883683,
           "type": "WarmUp",
-          "weight": 100,
-          "reps": 8,
+          "weight": 0,
+          "reps": 0,
           "completed": false,
           "restTimer": 90
         },
         {
           "id": 1779789883684,
           "type": "Normal",
-          "weight": 100,
-          "reps": 8,
+          "weight": 0,
+          "reps": 0,
           "completed": false,
           "restTimer": 90
         },
         {
           "id": 1779789883685,
           "type": "Normal",
-          "weight": 100,
-          "reps": 8,
+          "weight": 0,
+          "reps": 0,
           "completed": false,
           "restTimer": 90
         },
         {
           "id": 1779789883686,
           "type": "Normal",
-          "weight": 100,
-          "reps": 8,
+          "weight": 0,
+          "reps": 0,
           "completed": false,
           "restTimer": 90
         }
@@ -50,24 +50,24 @@
         {
           "id": 1779789883783,
           "type": "WarmUp",
-          "weight": 60,
-          "reps": 8,
+          "weight": 0,
+          "reps": 0,
           "completed": false,
           "restTimer": 90
         },
         {
           "id": 1779789883784,
           "type": "Normal",
-          "weight": 60,
-          "reps": 8,
+          "weight": 0,
+          "reps": 0,
           "completed": false,
           "restTimer": 90
         },
         {
           "id": 1779789883785,
           "type": "Normal",
-          "weight": 60,
-          "reps": 8,
+          "weight": 0,
+          "reps": 0,
           "completed": false,
           "restTimer": 90
         }
@@ -81,24 +81,24 @@
         {
           "id": 1779789883883,
           "type": "WarmUp",
-          "weight": 12,
-          "reps": 12,
+          "weight": 0,
+          "reps": 0,
           "completed": false,
           "restTimer": 90
         },
         {
           "id": 1779789883884,
           "type": "Normal",
-          "weight": 12,
-          "reps": 12,
+          "weight": 0,
+          "reps": 0,
           "completed": false,
           "restTimer": 90
         },
         {
           "id": 1779789883885,
           "type": "Normal",
-          "weight": 12,
-          "reps": 12,
+          "weight": 0,
+          "reps": 0,
           "completed": false,
           "restTimer": 90
         }
@@ -112,24 +112,24 @@
         {
           "id": 1779789883983,
           "type": "WarmUp",
-          "weight": 25,
-          "reps": 10,
+          "weight": 0,
+          "reps": 0,
           "completed": false,
           "restTimer": 90
         },
         {
           "id": 1779789883984,
           "type": "Normal",
-          "weight": 25,
-          "reps": 10,
+          "weight": 0,
+          "reps": 0,
           "completed": false,
           "restTimer": 90
         },
         {
           "id": 1779789883985,
           "type": "Normal",
-          "weight": 25,
-          "reps": 10,
+          "weight": 0,
+          "reps": 0,
           "completed": false,
           "restTimer": 90
         }

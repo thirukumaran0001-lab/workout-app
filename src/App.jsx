@@ -191,9 +191,9 @@ export default function App() {
             name: "Bench Press",
             muscle: "Chest",
             sets: [
-              { id: 101, type: "WarmUp", weight: 60, reps: 10, completed: false },
-              { id: 102, type: "Normal", weight: 100, reps: 8, completed: false },
-              { id: 103, type: "Normal", weight: 100, reps: 8, completed: false }
+              { id: 101, type: "WarmUp", weight: 0, reps: 0, completed: false },
+              { id: 102, type: "Normal", weight: 0, reps: 0, completed: false },
+              { id: 103, type: "Normal", weight: 0, reps: 0, completed: false }
             ]
           }
         ]);
@@ -348,8 +348,8 @@ export default function App() {
     setSessionExercises(prev => prev.map(ex => {
       if (ex.id !== exerciseId) return ex;
       const lastSet = ex.sets[ex.sets.length - 1];
-      const weight = lastSet ? lastSet.weight : 60;
-      const reps = lastSet ? lastSet.reps : 8;
+      const weight = lastSet ? lastSet.weight : 0;
+      const reps = lastSet ? lastSet.reps : 0;
       return {
         ...ex,
         sets: [...ex.sets, { id: Date.now(), type: "Normal", weight, reps, completed: false }]
@@ -372,7 +372,7 @@ export default function App() {
         id: exTemplate.id,
         name: exTemplate.name,
         muscle: exTemplate.muscle,
-        sets: [{ id: Date.now(), type: "Normal", weight: 60, reps: 8, completed: false }]
+        sets: [{ id: Date.now(), type: "Normal", weight: 0, reps: 0, completed: false }]
       }
     ]);
     setShowAddExModal(false);
@@ -477,9 +477,9 @@ export default function App() {
         name: "Bench Press",
         muscle: "Chest",
         sets: [
-          { id: 101, type: "WarmUp", weight: 60, reps: 10, completed: false },
-          { id: 102, type: "Normal", weight: 100, reps: 8, completed: false },
-          { id: 103, type: "Normal", weight: 100, reps: 8, completed: false }
+          { id: 101, type: "WarmUp", weight: 0, reps: 0, completed: false },
+          { id: 102, type: "Normal", weight: 0, reps: 0, completed: false },
+          { id: 103, type: "Normal", weight: 0, reps: 0, completed: false }
         ]
       }
     ]);
@@ -828,7 +828,7 @@ export default function App() {
                       <div className="space-y-4">
                         {/* Sets Table */}
                         <div className="space-y-2">
-                          <div className="grid grid-cols-12 gap-2 text-[9px] font-bold text-zinc-500 tracking-wider uppercase px-2">
+                          <div className="hidden sm:grid grid-cols-12 gap-2 text-[9px] font-bold text-zinc-500 tracking-wider uppercase px-2">
                             <div className="col-span-1 text-center">Set</div>
                             <div className="col-span-3 text-center">Type</div>
                             <div className="col-span-3 text-center">Weight (kg)</div>
@@ -840,19 +840,19 @@ export default function App() {
                           {exercise.sets.map((set, index) => (
                             <div 
                               key={set.id} 
-                              className={`grid grid-cols-12 gap-2 items-center p-1 rounded-2xl transition-premium ${
-                                set.completed ? 'bg-emerald-500/5 border border-emerald-500/10' : ''
+                              className={`grid grid-cols-12 gap-y-3 gap-x-2 items-center p-3 sm:p-1 rounded-2xl border border-zinc-900/60 sm:border-transparent transition-premium ${
+                                set.completed ? 'bg-emerald-500/5 border-emerald-500/10' : ''
                               }`}
                             >
                               {/* Set Index */}
-                              <div className="col-span-1 text-center">
+                              <div className="col-span-2 sm:col-span-1 text-left sm:text-center px-1">
                                 <span className="text-[10px] font-bold font-mono text-zinc-400">
-                                  {index + 1}
+                                  Set {index + 1}
                                 </span>
                               </div>
 
                               {/* Set Type Segmented Control */}
-                              <div className="col-span-3 flex justify-center space-x-1">
+                              <div className="col-span-10 sm:col-span-3 flex justify-start sm:justify-center space-x-1">
                                 {['W', 'N', 'D', 'F'].map((tLetter) => {
                                   const tMap = { 'W': 'WarmUp', 'N': 'Normal', 'D': 'DropSet', 'F': 'Failure' };
                                   const tName = tMap[tLetter];
@@ -880,7 +880,7 @@ export default function App() {
                               </div>
 
                               {/* Weight Input with +/- Buttons */}
-                              <div className="col-span-3 flex items-center justify-center space-x-1">
+                              <div className="col-span-5 sm:col-span-3 flex items-center justify-start sm:justify-center space-x-1">
                                 <button
                                   type="button"
                                   disabled={set.completed}
@@ -908,7 +908,7 @@ export default function App() {
                               </div>
 
                               {/* Reps Input with +/- Buttons */}
-                              <div className="col-span-3 flex items-center justify-center space-x-1">
+                              <div className="col-span-4 sm:col-span-3 flex items-center justify-start sm:justify-center space-x-1">
                                 <button
                                   type="button"
                                   disabled={set.completed}
@@ -936,7 +936,7 @@ export default function App() {
                               </div>
 
                               {/* Complete Button */}
-                              <div className="col-span-1 flex justify-center">
+                              <div className="col-span-2 sm:col-span-1 flex justify-end sm:justify-center">
                                 <button 
                                   onClick={() => toggleSetComplete(exercise.id, set.id)}
                                   className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-premium active:scale-75 cursor-pointer ${
@@ -950,7 +950,7 @@ export default function App() {
                               </div>
 
                               {/* Set Delete */}
-                              <div className="col-span-1 flex justify-center">
+                              <div className="col-span-1 flex justify-end sm:justify-center">
                                 <button 
                                   onClick={() => removeSetFromExercise(exercise.id, set.id)}
                                   className="text-zinc-600 hover:text-rose-400 transition-colors cursor-pointer"
