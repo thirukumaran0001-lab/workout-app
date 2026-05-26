@@ -127,43 +127,43 @@ export default function HomeDashboardView({ workouts, onStartRoutine, setActiveT
       <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
         <defs>
           <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#f4f4f5" stopOpacity="0.06" />
-            <stop offset="100%" stopColor="#f4f4f5" stopOpacity="0" />
+            <stop offset="0%" stopColor="#c5a880" stopOpacity="0.08" />
+            <stop offset="100%" stopColor="#c5a880" stopOpacity="0" />
           </linearGradient>
           <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#71717a" />
-            <stop offset="50%" stopColor="#f4f4f5" />
-            <stop offset="100%" stopColor="#a1a1aa" />
+            <stop offset="0%" stopColor="#8c7853" />
+            <stop offset="50%" stopColor="#c5a880" />
+            <stop offset="100%" stopColor="#ffffff" />
           </linearGradient>
         </defs>
 
         {/* Horizontal Grid lines */}
-        <line x1={padding} y1={padding} x2={width - padding} y2={padding} stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" strokeDasharray="3 3" />
-        <line x1={padding} y1={height / 2} x2={width - padding} y2={height / 2} stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" strokeDasharray="3 3" />
-        <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+        <line x1={padding} y1={padding} x2={width - padding} y2={padding} stroke="rgba(255,255,255,0.015)" strokeWidth="0.5" strokeDasharray="3 3" />
+        <line x1={padding} y1={height / 2} x2={width - padding} y2={height / 2} stroke="rgba(255,255,255,0.015)" strokeWidth="0.5" strokeDasharray="3 3" />
+        <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
 
         {/* Chart fill */}
         <path d={areaData} fill="url(#areaGrad)" />
         
         {/* Chart line */}
-        <path d={pathData} fill="none" stroke="url(#lineGrad)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={pathData} fill="none" stroke="url(#lineGrad)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
 
         {/* Data points & labels */}
         {points.map((p, idx) => (
           <g key={idx} className="group cursor-pointer">
             {/* Vertical hover guide line */}
-            <line x1={p.x} y1={padding} x2={p.x} y2={height - padding} stroke="rgba(255,255,255,0.05)" strokeWidth="1" className="opacity-0 group-hover:opacity-100 transition-opacity" />
+            <line x1={p.x} y1={padding} x2={p.x} y2={height - padding} stroke="rgba(197, 168, 128, 0.15)" strokeWidth="1" className="opacity-0 group-hover:opacity-100 transition-opacity" />
             
-            <circle cx={p.x} cy={p.y} r="4.5" fill="#030303" stroke="#cbd5e1" strokeWidth="2.5" className="transition-transform group-hover:scale-125" />
-            <circle cx={p.x} cy={p.y} r="1.5" fill="#f8fafc" />
+            <circle cx={p.x} cy={p.y} r="4.5" fill="#020202" stroke="#c5a880" strokeWidth="2" className="transition-transform group-hover:scale-125" />
+            <circle cx={p.x} cy={p.y} r="1.5" fill="#ffffff" />
             
             {/* Value Indicator */}
-            <text x={p.x} y={p.y - 12} textAnchor="middle" fill="#cbd5e1" fontSize="8" fontWeight="bold" className="font-mono opacity-0 group-hover:opacity-100 transition-opacity">
+            <text x={p.x} y={p.y - 12} textAnchor="middle" fill="#e4e4e7" fontSize="8" fontWeight="bold" className="font-mono opacity-0 group-hover:opacity-100 transition-opacity">
               {p.val}m
             </text>
 
             {/* Weekday text */}
-            <text x={p.x} y={height - 4} textAnchor="middle" fill="#64748b" fontSize="8" fontWeight="600" className="font-mono">
+            <text x={p.x} y={height - 4} textAnchor="middle" fill="#52525b" fontSize="8" fontWeight="600" className="font-mono">
               {weekdays[idx]}
             </text>
           </g>
@@ -220,7 +220,7 @@ export default function HomeDashboardView({ workouts, onStartRoutine, setActiveT
         
         <button 
           onClick={() => handleStart(routinesList[0])}
-          className="py-2.5 px-5 bg-gradient-to-r from-slate-200 via-zinc-100 to-slate-300 hover:from-white hover:to-white text-zinc-950 font-black text-xs uppercase tracking-wider rounded-2xl shadow-lg shadow-white/5 active:scale-95 transition-premium flex items-center space-x-2"
+          className="py-2.5 px-5 bg-zinc-950 hover:bg-zinc-900 text-brand-accent border border-brand-accent/40 hover:border-brand-accent font-bold text-xs uppercase tracking-wider rounded-2xl shadow-lg shadow-brand-accent/5 active:scale-95 transition-premium flex items-center space-x-2 cursor-pointer"
         >
           <Sparkles className="w-4 h-4 fill-current" />
           <span>Quick Start Session</span>
@@ -229,17 +229,17 @@ export default function HomeDashboardView({ workouts, onStartRoutine, setActiveT
 
       {/* Overview Dashboard Cards */}
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
-        <div className="bg-zinc-950/40 border border-dark-border p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl text-center">
+        <div className="bg-[#0a0a0c]/60 border border-dark-border p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl text-center">
           <span className="text-[8px] sm:text-[9px] text-zinc-500 uppercase tracking-widest font-semibold block truncate">Total Volume</span>
           <span className="text-xs sm:text-lg font-bold font-mono text-white mt-1 block">{(totalVolume).toLocaleString()} kg</span>
         </div>
-        <div className="bg-zinc-950/40 border border-dark-border p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl text-center">
+        <div className="bg-[#0a0a0c]/60 border border-dark-border p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl text-center">
           <span className="text-[8px] sm:text-[9px] text-zinc-500 uppercase tracking-widest font-semibold block truncate">Active Hours</span>
-          <span className="text-xs sm:text-lg font-bold font-mono text-[#cbd5e1] mt-1 block">{(totalDurationMin / 60).toFixed(1)} hrs</span>
+          <span className="text-xs sm:text-lg font-bold font-mono text-brand-secondary mt-1 block">{(totalDurationMin / 60).toFixed(1)} hrs</span>
         </div>
-        <div className="bg-zinc-950/40 border border-dark-border p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl text-center">
+        <div className="bg-[#0a0a0c]/60 border border-dark-border p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl text-center">
           <span className="text-[8px] sm:text-[9px] text-zinc-500 uppercase tracking-widest font-semibold block truncate">Logs Completed</span>
-          <span className="text-xs sm:text-lg font-bold font-mono text-[#38bdf8] mt-1 block">{workouts.length}</span>
+          <span className="text-xs sm:text-lg font-bold font-mono text-brand-accent mt-1 block">{workouts.length}</span>
         </div>
       </div>
 
@@ -255,7 +255,7 @@ export default function HomeDashboardView({ workouts, onStartRoutine, setActiveT
                 <h3 className="text-xs font-bold text-zinc-300 uppercase tracking-widest">Activity Overview</h3>
                 <p className="text-[9px] text-zinc-500 mt-0.5">Minutes trained per day (last 7 days)</p>
               </div>
-              <span className="text-[10px] text-brand-secondary font-mono bg-zinc-950/80 border border-dark-border px-2.5 py-1 rounded-xl uppercase">WEEK PROGRESS</span>
+              <span className="text-[10px] text-brand-accent font-mono bg-zinc-950/80 border border-dark-border px-2.5 py-1 rounded-xl uppercase">WEEK PROGRESS</span>
             </div>
             
             <div className="w-full">
@@ -272,7 +272,7 @@ export default function HomeDashboardView({ workouts, onStartRoutine, setActiveT
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {routinesList.map(routine => (
-                <div key={routine.id} className="bg-[#09090b]/60 border border-dark-border rounded-3xl p-5 flex flex-col justify-between space-y-4 hover-card-glow">
+                <div key={routine.id} className="bg-[#0a0a0c]/60 border border-dark-border rounded-3xl p-5 flex flex-col justify-between space-y-4 hover-card-glow">
                   <div>
                     <div className="flex justify-between items-start">
                       <h4 className="text-sm font-black text-white">{routine.name}</h4>
@@ -283,7 +283,7 @@ export default function HomeDashboardView({ workouts, onStartRoutine, setActiveT
                     <ul className="mt-3.5 space-y-1.5">
                       {routine.exercises.map((ex, idx) => (
                         <li key={idx} className="text-[10px] text-zinc-500 flex items-center space-x-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                          <span className="w-1.5 h-1.5 rounded-full bg-brand-accent/60" />
                           <span className="text-zinc-300 font-medium">{ex.name}</span>
                           <span className="text-zinc-500">({ex.setsCount}x{ex.defaultReps})</span>
                         </li>
@@ -293,9 +293,9 @@ export default function HomeDashboardView({ workouts, onStartRoutine, setActiveT
 
                   <button
                     onClick={() => handleStart(routine)}
-                    className="w-full py-2.5 bg-zinc-900/60 border border-zinc-800 hover:border-zinc-700 rounded-xl text-[10px] uppercase font-bold text-white tracking-wider flex items-center justify-center space-x-2 transition-colors cursor-pointer"
+                    className="w-full py-2.5 bg-zinc-950 hover:bg-zinc-900 border border-zinc-800 hover:border-brand-accent/30 rounded-xl text-[10px] uppercase font-bold text-zinc-300 hover:text-brand-accent tracking-wider flex items-center justify-center space-x-2 transition-all cursor-pointer"
                   >
-                    <Play className="w-3 h-3 fill-current text-white" />
+                    <Play className="w-3 h-3 fill-current" />
                     <span>Initiate Routine</span>
                   </button>
                 </div>
@@ -385,8 +385,8 @@ export default function HomeDashboardView({ workouts, onStartRoutine, setActiveT
             </div>
 
             {/* Advice panel based on stats */}
-            <div className="p-4 bg-zinc-950/60 border border-dark-border rounded-2xl flex items-start space-x-3">
-              <Award className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
+            <div className="p-4 bg-[#0a0a0c]/60 border border-dark-border rounded-2xl flex items-start space-x-3">
+              <Award className="w-5 h-5 text-brand-accent flex-shrink-0 mt-0.5" />
               <div>
                 <span className="text-[10px] text-zinc-400 uppercase font-bold block tracking-wider">AI Coach Feedback</span>
                 <p className="text-[11px] text-zinc-500 mt-1 leading-relaxed">

@@ -101,39 +101,39 @@ export default function AnalyticsView({ workouts, exercises }) {
     const areaPathData = `${pathData} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`;
 
     return (
-      <div className="relative bg-[#09090b]/60 border border-dark-border rounded-3xl p-4 shadow-2xl hover-card-glow">
+      <div className="relative bg-[#0a0a0c]/60 border border-dark-border rounded-3xl p-4 shadow-2xl hover-card-glow">
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
           <defs>
             <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#f4f4f5" stopOpacity="0.06" />
-              <stop offset="100%" stopColor="#f4f4f5" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#c5a880" stopOpacity="0.08" />
+              <stop offset="100%" stopColor="#c5a880" stopOpacity="0.0" />
             </linearGradient>
             <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#71717a" />
-              <stop offset="100%" stopColor="#f4f4f5" />
+              <stop offset="0%" stopColor="#8c7853" />
+              <stop offset="100%" stopColor="#c5a880" />
             </linearGradient>
           </defs>
 
           {/* Grid lines */}
-          <line x1={padding} y1={padding} x2={width - padding} y2={padding} stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" strokeDasharray="3 3" />
-          <line x1={padding} y1={height / 2} x2={width - padding} y2={height / 2} stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" strokeDasharray="3 3" />
-          <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+          <line x1={padding} y1={padding} x2={width - padding} y2={padding} stroke="rgba(255,255,255,0.015)" strokeWidth="0.5" strokeDasharray="3 3" />
+          <line x1={padding} y1={height / 2} x2={width - padding} y2={height / 2} stroke="rgba(255,255,255,0.015)" strokeWidth="0.5" strokeDasharray="3 3" />
+          <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
 
           {/* Area fill */}
           {areaPathData && <path d={areaPathData} fill="url(#chartGradient)" />}
 
           {/* Line path */}
-          {pathData && <path d={pathData} fill="none" stroke="url(#lineGradient)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
+          {pathData && <path d={pathData} fill="none" stroke="url(#lineGradient)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />}
 
           {/* Data points */}
           {points.map((p, i) => (
             <g key={i} className="group cursor-pointer">
-              <circle cx={p.x} cy={p.y} r="4.5" fill="#030303" stroke="#f8fafc" strokeWidth="2" className="transition-transform group-hover:scale-125" />
+              <circle cx={p.x} cy={p.y} r="4.5" fill="#020202" stroke="#c5a880" strokeWidth="2" className="transition-transform group-hover:scale-125" />
               
-              <text x={p.x} y={p.y - 12} textAnchor="middle" fill="#f8fafc" fontSize="9" fontWeight="bold" className="opacity-0 group-hover:opacity-100 transition-opacity font-mono pointer-events-none">
+              <text x={p.x} y={p.y - 12} textAnchor="middle" fill="#e4e4e7" fontSize="9" fontWeight="bold" className="opacity-0 group-hover:opacity-100 transition-opacity font-mono pointer-events-none">
                 {p.value} kg
               </text>
-              <text x={p.x} y={height - padding + 15} textAnchor="middle" fill="#64748b" fontSize="8" fontWeight="500" className="font-mono">
+              <text x={p.x} y={height - padding + 15} textAnchor="middle" fill="#52525b" fontSize="8" fontWeight="500" className="font-mono">
                 {p.label}
               </text>
             </g>
