@@ -1,0 +1,10 @@
+[
+  { "id": 1, "name": "Bench Press", "muscle": "Chest" },
+  { "id": 2, "name": "Pull-up", "muscle": "Back" },
+  { "id": 3, "name": "Barbell Deadlift", "muscle": "Back" },
+  { "id": 4, "name": "Barbell Squat", "muscle": "Legs" },
+  { "id": 5, "name": "Overhead Press", "muscle": "Shoulders" },
+  { "id": 6, "name": "Bicep Curl", "muscle": "Arms" },
+  { "id": 7, "name": "Lateral Raise", "muscle": "Shoulders" },
+  { "id": 8, "name": "Tricep Pushdown", "muscle": "Arms" }
+]
