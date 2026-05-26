@@ -1,63 +1,131 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Outfit', sans-serif;
+  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --font-display: 'Orbitron', sans-serif;
   
-  --color-neon-cyan: #06b6d4;
-  --color-neon-purple: #a855f7;
-  --color-neon-green: #10b981;
-  --color-neon-amber: #f59e0b;
+  --color-brand-primary: #f8fafc; /* Pure Platinum Light */
+  --color-brand-secondary: #cbd5e1; /* Brushed Aluminum */
+  --color-brand-accent: #38bdf8; /* Ice Blue highlight */
+  --color-dark-bg: #030303;
+  --color-dark-card: #09090b;
+  --color-dark-border: rgba(248, 250, 252, 0.07);
 }
 
-/* Custom visual utilities for the Cyberpunk Glassmorphic design */
-@utility glass-panel {
-  background: rgba(18, 18, 20, 0.65);
-  backdrop-filter: blur(18px);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-@utility glass-panel-glow {
-  background: rgba(18, 18, 20, 0.75);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(6, 182, 212, 0.15);
-  box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.08);
-}
-
-@utility neon-border-hover {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  &:hover {
-    border-color: rgba(168, 85, 247, 0.35);
-    box-shadow: 0 0 20px -5px rgba(168, 85, 247, 0.15);
-  }
-}
-
-/* Background animated neon nodes */
 body {
-  background-color: #050507;
+  background-color: #030303;
   background-image: 
-    radial-gradient(circle at 10% 20%, rgba(6, 182, 212, 0.04) 0%, transparent 45%),
-    radial-gradient(circle at 90% 80%, rgba(168, 85, 247, 0.04) 0%, transparent 45%);
+    radial-gradient(circle at 50% -20%, rgba(248, 250, 252, 0.12) 0%, transparent 60%),
+    radial-gradient(circle at 80% 85%, rgba(56, 189, 248, 0.04) 0%, transparent 45%),
+    radial-gradient(circle at 20% 20%, rgba(203, 213, 225, 0.02) 0%, transparent 35%);
   background-attachment: fixed;
+  color: #f1f5f9;
   overflow-x: hidden;
 }
 
-/* Custom futuristic scrollbar */
+/* Glassmorphism card utilities */
+@utility glass-panel {
+  background: rgba(9, 9, 11, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(248, 250, 252, 0.07);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+@utility glass-panel-glow {
+  background: rgba(12, 12, 14, 0.8);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(248, 250, 252, 0.18);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    0 0 35px -5px rgba(248, 250, 252, 0.08);
+}
+
+@utility transition-premium {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@utility hover-card-glow {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  &:hover {
+    border-color: rgba(248, 250, 252, 0.25);
+    box-shadow: 
+      0 12px 40px rgba(0, 0, 0, 0.7),
+      0 0 25px -5px rgba(248, 250, 252, 0.08);
+    transform: translateY(-2px);
+  }
+}
+
+/* Elegant Scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #09090b;
+  background: #030303;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1f1f23;
-  border-radius: 9999px;
+  background: #1e293b;
+  border-radius: 99px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #06b6d4;
+  background: #f8fafc;
+}
+
+/* Custom styled range sliders for vitals */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  background: rgba(248, 250, 252, 0.08);
+  height: 5px;
+  border-radius: 99px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -6px; /* Center thumb vertically */
+  background-color: #ffffff;
+  border: 2px solid #cbd5e1;
+  height: 17px;
+  width: 17px;
+  border-radius: 50%;
+  box-shadow: 
+    0 0 10px rgba(248, 250, 252, 0.5),
+    0 2px 4px rgba(0,0,0,0.5);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+input[type="range"]:active::-webkit-slider-thumb {
+  transform: scale(1.2);
+  box-shadow: 
+    0 0 15px rgba(248, 250, 252, 0.8),
+    0 2px 6px rgba(0,0,0,0.6);
+}
+
+input[type="range"]::-moz-range-track {
+  background: rgba(248, 250, 252, 0.08);
+  height: 5px;
+  border-radius: 99px;
+}
+
+input[type="range"]::-moz-range-thumb {
+  background-color: #ffffff;
+  border: 2px solid #cbd5e1;
+  height: 15px;
+  width: 15px;
+  border-radius: 50%;
+  box-shadow: 
+    0 0 10px rgba(248, 250, 252, 0.5),
+    0 2px 4px rgba(0,0,0,0.5);
 }
