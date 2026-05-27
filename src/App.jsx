@@ -304,6 +304,19 @@ export default function App() {
     }));
   };
 
+  const handleInputKeyDown = (e, exerciseId, setId, field) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (field === 'weight') {
+        const repsInput = document.getElementById(`reps-${exerciseId}-${setId}`);
+        if (repsInput) repsInput.focus();
+      } else if (field === 'reps') {
+        toggleSetComplete(exerciseId, setId);
+        e.target.blur();
+      }
+    }
+  };
+
   const toggleExerciseCollapse = (exId) => {
     setCollapsedExercises(prev => ({ ...prev, [exId]: !prev[exId] }));
   };
@@ -493,7 +506,7 @@ export default function App() {
             </div>
             <div>
               <span className="font-display font-black text-sm tracking-widest bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
-                SLATE
+                APEX
               </span>
               <p className="text-[8px] text-zinc-500 font-mono tracking-widest uppercase mt-0.5">WORKOUT TRACKER</p>
             </div>
@@ -790,9 +803,15 @@ export default function App() {
                                 {exercise.sets.map((set, index) => (
                                   <div 
                                     key={set.id} 
-                                    className={`grid grid-cols-12 gap-y-3 gap-x-2 items-center p-3 sm:p-1.5 rounded-2xl border border-zinc-900/60 sm:border-transparent transition-premium ${
-                                      set.completed ? 'bg-brand-primary/5 border-brand-primary/10' : ''
+                                    className={`grid grid-cols-12 gap-y-3 gap-x-2 items-center p-3 sm:p-1.5 rounded-2xl border transition-premium cursor-pointer ${
+                                      set.completed 
+                                        ? 'bg-brand-primary/5 border-brand-primary/10' 
+                                        : 'hover:bg-zinc-900/40 border-transparent hover:border-zinc-800'
                                     }`}
+                                    onClick={(e) => {
+                                      if (e.target.tagName === 'INPUT' || e.target.closest('button')) return;
+                                      toggleSetComplete(exercise.id, set.id);
+                                    }}
                                   >
                                     {/* Set Index */}
                                     <div className="col-span-2 sm:col-span-2 text-left sm:text-center px-1">
@@ -812,9 +831,12 @@ export default function App() {
                                         <Minus className="w-3 h-3" />
                                       </button>
                                       <input 
+                                        id={`weight-${exercise.id}-${set.id}`}
                                         type="number"
                                         value={set.weight || ''}
                                         onChange={(e) => handleSetChange(exercise.id, set.id, 'weight', parseFloat(e.target.value) || 0)}
+                                        onFocus={(e) => e.target.select()}
+                                        onKeyDown={(e) => handleInputKeyDown(e, exercise.id, set.id, 'weight')}
                                         disabled={set.completed}
                                         className="w-14 bg-zinc-950 border border-zinc-900 rounded-lg py-1 font-mono text-xs text-white text-center focus:outline-none focus:border-brand-primary disabled:opacity-60"
                                         placeholder="0"
@@ -840,9 +862,12 @@ export default function App() {
                                         <Minus className="w-3 h-3" />
                                       </button>
                                       <input 
+                                        id={`reps-${exercise.id}-${set.id}`}
                                         type="number"
                                         value={set.reps || ''}
                                         onChange={(e) => handleSetChange(exercise.id, set.id, 'reps', parseInt(e.target.value) || 0)}
+                                        onFocus={(e) => e.target.select()}
+                                        onKeyDown={(e) => handleInputKeyDown(e, exercise.id, set.id, 'reps')}
                                         disabled={set.completed}
                                         className="w-10 bg-zinc-950 border border-zinc-900 rounded-lg py-1 font-mono text-xs text-white text-center focus:outline-none focus:border-brand-primary disabled:opacity-60"
                                         placeholder="0"
