@@ -29,7 +29,7 @@ export default function ExerciseLibraryView({ exercises, onAddExercise }) {
     <div className="w-full max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
       
       {/* Add New Exercise Form */}
-      <div className="md:col-span-1 bg-[#0a0a0c]/60 border border-dark-border rounded-3xl p-6 shadow-2xl h-fit hover-card-glow">
+      <div className="md:col-span-1 bg-dark-card/45 border border-dark-border rounded-3xl p-6 shadow-2xl h-fit hover-card-glow">
         <div className="flex items-center space-x-2.5 border-b border-dark-border pb-3.5 mb-4">
           <Dumbbell className="w-4 h-4 text-zinc-400" />
           <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-200 font-mono">Register Exercise</h2>
@@ -100,7 +100,7 @@ export default function ExerciseLibraryView({ exercises, onAddExercise }) {
             return (
               <div 
                 key={muscleGroup} 
-                className="bg-[#0a0a0c]/60 border border-dark-border rounded-3xl p-5 flex flex-col space-y-3 hover-card-glow"
+                className="bg-dark-card/45 border border-dark-border rounded-3xl p-5 flex flex-col space-y-3 hover-card-glow"
               >
                 <div className="flex items-center justify-between border-b border-zinc-800/60 pb-2">
                   <span className="text-xs font-bold text-zinc-200 uppercase tracking-wide">{muscleGroup}</span>

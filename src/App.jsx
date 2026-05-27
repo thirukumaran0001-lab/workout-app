@@ -39,7 +39,7 @@ function BackgroundParticles() {
         x: Math.random() * width,
         y: Math.random() * height,
         radius: Math.random() * 1.5 + 0.5,
-        color: Math.random() > 0.5 ? 'rgba(255, 255, 255, 0.08)' : 'rgba(203, 213, 225, 0.08)',
+        color: Math.random() > 0.5 ? 'rgba(223, 186, 79, 0.08)' : 'rgba(212, 212, 216, 0.08)',
         vx: (Math.random() - 0.5) * 0.2,
         vy: (Math.random() - 0.5) * 0.2,
       });
@@ -753,7 +753,7 @@ export default function App() {
                     </div>
 
                     <div className="flex items-center space-x-3">
-                      <div className="bg-[#0c0d19]/40 border border-dark-border px-4 py-2.5 rounded-2xl text-center">
+                      <div className="bg-dark-card/45 border border-dark-border px-4 py-2.5 rounded-2xl text-center">
                         <span className="text-[9px] text-zinc-500 uppercase font-bold block tracking-wider font-mono">ELAPSED TIME</span>
                         <span className="font-mono font-black text-sm text-white tracking-wider">{formatTimeHHMMSS(sessionElapsed)}</span>
                       </div>
@@ -892,7 +892,7 @@ export default function App() {
                       </div>
 
                       {isCollapsed ? (
-                        <div className="p-3.5 bg-[#0c0d19]/30 border border-dark-border rounded-2xl flex items-center justify-between text-xs font-mono text-zinc-400">
+                        <div className="p-3.5 bg-dark-card/30 border border-dark-border rounded-2xl flex items-center justify-between text-xs font-mono text-zinc-400">
                           <span className="flex items-center space-x-1.5">
                             <Dumbbell className="w-4 h-4 text-brand-primary animate-pulse" />
                             <span>{exercise.sets.length} sets logged ({exercise.sets.filter(s => s.completed).length} completed)</span>
@@ -1043,7 +1043,7 @@ export default function App() {
 
                           {activeSubTab === 'insights' && (
                             <div className="space-y-4">
-                              <div className="bg-[#0c0d19]/40 border border-dark-border rounded-2xl p-4 flex justify-between items-center">
+                              <div className="bg-dark-card/45 border border-dark-border rounded-2xl p-4 flex justify-between items-center">
                                 <div>
                                   <span className="text-[10px] text-zinc-500 font-bold uppercase block">Est. 1-Rep Max</span>
                                   <span className="text-xl font-display font-black text-brand-secondary mt-1 block">{maxHistorical1RM} kg</span>
@@ -1109,7 +1109,7 @@ export default function App() {
                           )}
 
                           {activeSubTab === 'guide' && (
-                            <div className="p-4 bg-[#0c0d19]/80 border border-dark-border rounded-2xl flex items-start space-x-3">
+                            <div className="p-4 bg-dark-card/80 border border-dark-border rounded-2xl flex items-start space-x-3">
                               <BookOpen className="w-5 h-5 text-brand-secondary flex-shrink-0 mt-0.5" />
                               <div>
                                 <span className="text-[10px] text-brand-secondary uppercase font-bold block tracking-wider">EXECUTION INSTRUCTION</span>
@@ -1207,13 +1207,13 @@ export default function App() {
                       <circle cx="72" cy="72" r="40" stroke="rgba(255,255,255,0.02)" strokeWidth="6" fill="transparent" />
                       <circle 
                         cx="72" cy="72" r="40" 
-                        stroke={isResting ? '#ffffff' : 'rgba(255,255,255,0.06)'} 
+                        stroke={isResting ? '#dfba4f' : 'rgba(255,255,255,0.06)'} 
                         strokeWidth="6" fill="transparent" 
                         strokeDasharray={strokeDash} 
                         strokeDashoffset={strokeOffset} 
                         strokeLinecap="round"
                         className="transition-all duration-1000 ease-linear"
-                        style={{ filter: isResting ? 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.25))' : 'none' }}
+                        style={{ filter: isResting ? 'drop-shadow(0 0 8px rgba(223, 186, 79, 0.35))' : 'none' }}
                       />
                     </svg>
                     
@@ -1285,7 +1285,7 @@ export default function App() {
                   </div>
 
                   {/* Pulsing Cardiogram Row */}
-                  <div className="flex flex-col space-y-2 bg-[#0c0d19]/40 border border-dark-border p-3 rounded-2xl">
+                  <div className="flex flex-col space-y-2 bg-dark-card/45 border border-dark-border p-3 rounded-2xl">
                     <div className="flex justify-between items-center">
                       <div className="flex items-center space-x-2">
                         <Heart className="w-4 h-4 text-brand-accent animate-[pulse_0.8s_infinite]" />
@@ -1297,11 +1297,11 @@ export default function App() {
                       <path
                         d={getHeartbeatPath()}
                         fill="none"
-                        stroke="#ffffff"
+                        stroke="#dfba4f"
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        className="drop-shadow-[0_0_4px_rgba(255,255,255,0.4)]"
+                        className="drop-shadow-[0_0_4px_rgba(223,186,79,0.45)]"
                       />
                     </svg>
                   </div>
@@ -1384,13 +1384,13 @@ export default function App() {
                 <circle cx="88" cy="88" r="55" stroke="rgba(255,255,255,0.015)" strokeWidth="6" fill="transparent" />
                 <circle 
                   cx="88" cy="88" r="55" 
-                  stroke="#ffffff" 
+                  stroke="#dfba4f" 
                   strokeWidth="6" fill="transparent" 
                   strokeDasharray={345.5} 
                   strokeDashoffset={345.5 - (restTimer / initialRestDuration) * 345.5} 
                   strokeLinecap="round"
                   className="transition-all duration-1000 ease-linear"
-                  style={{ filter: 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.3))' }}
+                  style={{ filter: 'drop-shadow(0 0 10px rgba(223, 186, 79, 0.45))' }}
                 />
               </svg>
               
@@ -1414,7 +1414,7 @@ export default function App() {
                     }}
                     className={`py-2 px-1 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-colors border cursor-pointer ${
                       initialRestDuration === sec
-                        ? 'bg-brand-secondary/15 border-brand-secondary/30 text-brand-secondary shadow-[0_0_10px_rgba(255,255,255,0.05)]'
+                        ? 'bg-brand-secondary/15 border-brand-secondary/30 text-brand-secondary shadow-[0_0_10px_rgba(223,186,79,0.08)]'
                         : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
                     }`}
                   >
@@ -1559,7 +1559,7 @@ export default function App() {
               return (
                 <div className="space-y-2">
                   <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Target Muscle Distribution</h3>
-                  <div className="space-y-1.5 bg-[#0c0d19]/60 border border-dark-border p-3 rounded-2xl">
+                  <div className="space-y-1.5 bg-dark-card/60 border border-dark-border p-3 rounded-2xl">
                     {Object.entries(setsPerMuscle).map(([muscle, count]) => {
                       const pct = Math.round((count / maxSets) * 100);
                       return (
@@ -1641,7 +1641,7 @@ export default function App() {
               {completedWorkoutSummary.heartRates && (
                 <div className="space-y-1.5">
                   <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">HR Training Zones</h3>
-                  <div className="bg-[#0c0d19]/60 border border-dark-border p-3 rounded-2xl flex flex-col justify-between h-[120px] text-[8px] font-mono">
+                  <div className="bg-dark-card/60 border border-dark-border p-3 rounded-2xl flex flex-col justify-between h-[120px] text-[8px] font-mono">
                     {(() => {
                       const zones = [
                         { name: "Peak (Anaerobic)", min: 135, max: 200, color: "bg-brand-accent" },

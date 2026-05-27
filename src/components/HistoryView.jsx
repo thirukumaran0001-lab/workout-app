@@ -69,7 +69,7 @@ export default function HistoryView({ workouts }) {
         return (
           <div 
             key={workout.id} 
-            className="bg-[#0c0d19]/40 border border-dark-border rounded-3xl overflow-hidden transition-premium hover-card-glow"
+            className="bg-dark-card/45 border border-dark-border rounded-3xl overflow-hidden transition-premium hover-card-glow"
           >
             {/* Header / Clickable Toggle */}
             <div 
@@ -179,21 +179,21 @@ export default function HistoryView({ workouts }) {
                       {/* Side by side Heart Rate graph & Zones */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* SVG HR chart */}
-                        <div className="bg-[#0a0a16]/80 border border-dark-border p-3 rounded-2xl flex flex-col justify-center h-[95px]">
+                        <div className="bg-dark-card/80 border border-dark-border p-3 rounded-2xl flex flex-col justify-center h-[95px]">
                           <svg viewBox="0 0 200 50" className="w-full h-full overflow-visible">
                             <defs>
                               <linearGradient id={`hrGrad-${workout.id}`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.12" />
-                                <stop offset="100%" stopColor="#f43f5e" stopOpacity="0" />
+                                <stop offset="0%" stopColor="#dfba4f" stopOpacity="0.12" />
+                                <stop offset="100%" stopColor="#dfba4f" stopOpacity="0" />
                               </linearGradient>
                             </defs>
                             <path d={hrChart.areaPath} fill={`url(#hrGrad-${workout.id})`} />
-                            <path d={hrChart.path} fill="none" stroke="#f43f5e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d={hrChart.path} fill="none" stroke="#dfba4f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                             
                             {hrChart.coords.length > 0 && (() => {
                               const peakIdx = hrLogs.indexOf(Math.max(...hrLogs));
                               const peakCoord = hrChart.coords[peakIdx];
-                              return <circle cx={peakCoord.x} cy={peakCoord.y} r="2.5" fill="#020202" stroke="#06b6d4" strokeWidth="1" />;
+                              return <circle cx={peakCoord.x} cy={peakCoord.y} r="2.5" fill="#020202" stroke="#dfba4f" strokeWidth="1" />;
                             })()}
 
                             <text x="2" y="8" fill="#e4e4e7" fontSize="5" fontWeight="bold" className="font-mono">Max: {Math.max(...hrLogs)} bpm</text>
@@ -202,7 +202,7 @@ export default function HistoryView({ workouts }) {
                         </div>
 
                         {/* Zones */}
-                        <div className="bg-[#0a0a16]/80 border border-dark-border p-2.5 rounded-2xl flex flex-col justify-between h-[95px] text-[8px] font-mono">
+                        <div className="bg-dark-card/80 border border-dark-border p-2.5 rounded-2xl flex flex-col justify-between h-[95px] text-[8px] font-mono">
                           {(() => {
                             const zones = [
                               { name: "Anaerobic (Peak)", min: 135, max: 200, color: "bg-brand-accent" },
@@ -241,9 +241,9 @@ export default function HistoryView({ workouts }) {
                       <span className="text-[8px] text-zinc-400 bg-zinc-950 border border-dark-border px-2 py-0.5 rounded font-mono uppercase tracking-wider">{exercise.muscle}</span>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-2 bg-[#0c0d19]/30 border border-dark-border p-2.5 rounded-2xl">
+                    <div className="grid grid-cols-4 gap-2 bg-dark-card/30 border border-dark-border p-2.5 rounded-2xl">
                       {exercise.sets.map((set, sIdx) => (
-                        <div key={sIdx} className="flex flex-col items-center justify-center p-2 bg-[#090a18]/70 border border-dark-border rounded-xl text-center font-mono transition-premium hover:border-zinc-700">
+                        <div key={sIdx} className="flex flex-col items-center justify-center p-2 bg-dark-card/70 border border-dark-border rounded-xl text-center font-mono transition-premium hover-border-zinc-700">
                           <span className="text-[8px] font-bold uppercase px-1.5 py-0.5 rounded bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
                             S{sIdx + 1}
                           </span>

@@ -93,9 +93,9 @@ export default function HomeDashboardView({ workouts, onStartRoutine }) {
   const getMuscleColor = (muscleName) => {
     const count = muscleLoadCounts[muscleName] || 0;
     if (count === 0) return 'rgba(255, 255, 255, 0.03)';
-    if (count <= 3) return 'rgba(255, 255, 255, 0.18)'; // Muted silver glow
-    if (count <= 8) return 'rgba(255, 255, 255, 0.55)'; // Sterling silver
-    return 'rgba(255, 255, 255, 0.95)'; // Intense platinum white
+    if (count <= 3) return 'rgba(212, 212, 216, 0.25)'; // Faint silver glow
+    if (count <= 8) return 'rgba(212, 212, 216, 0.65)'; // Raw Platinum
+    return 'rgba(223, 186, 79, 0.9)'; // Champagne Gold
   };
 
   return (
@@ -183,12 +183,12 @@ export default function HomeDashboardView({ workouts, onStartRoutine }) {
                     <span className="text-zinc-500">Unloaded</span>
                   </span>
                   <span className="flex items-center space-x-1.5">
-                    <span className="w-2.5 h-2.5 rounded-sm bg-zinc-400" />
+                    <span className="w-2.5 h-2.5 rounded-sm bg-brand-secondary" />
                     <span className="text-zinc-400">Active</span>
                   </span>
                   <span className="flex items-center space-x-1.5">
-                    <span className="w-2.5 h-2.5 rounded-sm bg-white" />
-                    <span className="text-zinc-200 font-bold">Heavy</span>
+                    <span className="w-2.5 h-2.5 rounded-sm bg-brand-primary" />
+                    <span className="text-brand-primary font-bold">Heavy</span>
                   </span>
                 </div>
               </div>

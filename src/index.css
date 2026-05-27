@@ -5,27 +5,27 @@
   --font-mono: 'JetBrains Mono', monospace;
   --font-display: 'Orbitron', sans-serif;
   
-  --color-brand-primary: #ffffff; /* Platinum White */
-  --color-brand-secondary: #cbd5e1; /* Sterling Silver */
-  --color-brand-accent: #94a3b8; /* Muted Steel Gray */
-  --color-dark-bg: #070708; /* Luxurious Matte Noir */
-  --color-dark-card: #0f0f11; /* Carbon Obsidian Glass */
-  --color-dark-border: #222225; /* Obsidian Brushed Steel */
+  --color-brand-primary: #dfba4f; /* Champagne Gold */
+  --color-brand-secondary: #d4d4d8; /* Raw Platinum Silver */
+  --color-brand-accent: #e2b842; /* Warm Gold Amber */
+  --color-dark-bg: #08080a; /* Deep Charcoal Obsidian */
+  --color-dark-card: rgba(18, 18, 20, 0.75); /* Steel Charcoal Carbon Glass */
+  --color-dark-border: #27272a; /* Zinc 800 Steel */
 }
 
 @utility bg-stealth-grid {
   background-size: 32px 32px;
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.01) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.01) 1px, transparent 1px);
+    linear-gradient(to right, rgba(223, 186, 79, 0.015) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(223, 186, 79, 0.015) 1px, transparent 1px);
 }
 
 body {
-  background-color: #070708;
+  background-color: #08080a;
   background-image: 
-    radial-gradient(circle at 50% -20%, rgba(255, 255, 255, 0.04) 0%, transparent 65%),
-    radial-gradient(circle at 90% 25%, rgba(255, 255, 255, 0.01) 0%, transparent 40%),
-    radial-gradient(circle at 10% 75%, rgba(255, 255, 255, 0.01) 0%, transparent 40%);
+    radial-gradient(circle at 50% -20%, rgba(223, 186, 79, 0.03) 0%, transparent 65%),
+    radial-gradient(circle at 90% 25%, rgba(255, 255, 255, 0.005) 0%, transparent 40%),
+    radial-gradient(circle at 10% 75%, rgba(255, 255, 255, 0.005) 0%, transparent 40%);
   background-attachment: fixed;
   color: #f4f4f5;
   overflow-x: hidden;
@@ -34,23 +34,23 @@ body {
 
 /* Glassmorphism card utilities */
 @utility glass-panel {
-  background: rgba(15, 15, 17, 0.7);
+  background: rgba(18, 18, 20, 0.75);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(223, 186, 79, 0.06); /* Faint gold reflection border */
   box-shadow: 
     inset 0 1px 1px rgba(255, 255, 255, 0.01),
     0 10px 40px rgba(0, 0, 0, 0.85);
 }
 
 @utility glass-panel-glow {
-  background: rgba(18, 18, 20, 0.85);
+  background: rgba(22, 22, 25, 0.85);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.15); /* Platinum border */
+  border: 1px solid rgba(223, 186, 79, 0.25); /* Champagne Gold glow border */
   box-shadow: 
-    inset 0 1px 2px rgba(255, 255, 255, 0.05),
-    0 0 35px -5px rgba(255, 255, 255, 0.03),
+    inset 0 1px 2px rgba(255, 255, 255, 0.04),
+    0 0 35px -5px rgba(223, 186, 79, 0.04),
     0 15px 45px rgba(0, 0, 0, 0.9);
 }
 
@@ -61,10 +61,10 @@ body {
 @utility hover-card-glow {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   &:hover {
-    border-color: rgba(255, 255, 255, 0.2); /* Silver border on hover */
+    border-color: rgba(223, 186, 79, 0.22); /* Gold border glow on hover */
     box-shadow: 
-      inset 0 1px 1px rgba(255, 255, 255, 0.04),
-      0 0 25px rgba(255, 255, 255, 0.02),
+      inset 0 1px 1px rgba(255, 255, 255, 0.03),
+      0 0 25px rgba(223, 186, 79, 0.02),
       0 15px 40px rgba(0, 0, 0, 0.9);
     transform: translateY(-2px);
   }
@@ -77,16 +77,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #070708;
+  background: #08080a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(223, 186, 79, 0.08);
   border-radius: 99px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(223, 186, 79, 0.2);
 }
 
 /* Custom styled range sliders for vitals */
@@ -99,10 +99,10 @@ input[type="range"] {
 }
 
 input[type="range"]::-webkit-slider-runnable-track {
-  background: rgba(34, 34, 37, 0.8);
+  background: rgba(39, 39, 42, 0.8);
   height: 6px;
   border-radius: 99px;
-  border: 1px solid rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.01);
 }
 
 /* Vitals Individual Slider Thumbs */
@@ -110,83 +110,83 @@ input[type="range"]::-webkit-slider-runnable-track {
   -webkit-appearance: none;
   appearance: none;
   margin-top: -5px;
-  background-color: #ffffff !important; /* Polished Silver White */
+  background-color: #dfba4f !important; /* Champagne Gold */
   border: 1.5px solid #18181b !important;
   height: 16px;
   width: 16px;
   border-radius: 50%;
   box-shadow: 
-    0 0 12px rgba(255, 255, 255, 0.4),
+    0 0 12px rgba(223, 186, 79, 0.5),
     0 2px 4px rgba(0,0,0,0.5) !important;
   transition: transform 0.1s ease, background-color 0.1s ease;
 }
 .slider-sleep:active::-webkit-slider-thumb {
   transform: scale(1.25);
-  background-color: #cbd5e1 !important;
+  background-color: #f0d57d !important;
 }
 
 .slider-recovery::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   margin-top: -5px;
-  background-color: #e2e8f0 !important; /* Steel Silver */
+  background-color: #d4d4d8 !important; /* Raw Platinum */
   border: 1.5px solid #18181b !important;
   height: 16px;
   width: 16px;
   border-radius: 50%;
   box-shadow: 
-    0 0 12px rgba(226, 232, 240, 0.3),
+    0 0 12px rgba(212, 212, 216, 0.4),
     0 2px 4px rgba(0,0,0,0.5) !important;
   transition: transform 0.1s ease, background-color 0.1s ease;
 }
 .slider-recovery:active::-webkit-slider-thumb {
   transform: scale(1.25);
-  background-color: #94a3b8 !important;
+  background-color: #ffffff !important;
 }
 
 .slider-nutrition::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   margin-top: -5px;
-  background-color: #cbd5e1 !important; /* Muted Platinum */
+  background-color: #e2b842 !important; /* Warm Gold Amber */
   border: 1.5px solid #18181b !important;
   height: 16px;
   width: 16px;
   border-radius: 50%;
   box-shadow: 
-    0 0 12px rgba(203, 213, 225, 0.3),
+    0 0 12px rgba(226, 184, 66, 0.4),
     0 2px 4px rgba(0,0,0,0.5) !important;
   transition: transform 0.1s ease, background-color 0.1s ease;
 }
 .slider-nutrition:active::-webkit-slider-thumb {
   transform: scale(1.25);
-  background-color: #64748b !important;
+  background-color: #f5d16c !important;
 }
 
 /* Firefox support */
 .slider-sleep::-moz-range-thumb {
-  background-color: #ffffff !important;
+  background-color: #dfba4f !important;
   border: 1.5px solid #18181b !important;
   height: 16px;
   width: 16px;
   border-radius: 50%;
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3), 0 2px 4px rgba(0,0,0,0.5);
+  box-shadow: 0 0 10px rgba(223, 186, 79, 0.4), 0 2px 4px rgba(0,0,0,0.5);
 }
 .slider-recovery::-moz-range-thumb {
-  background-color: #e2e8f0 !important;
+  background-color: #d4d4d8 !important;
   border: 1.5px solid #18181b !important;
   height: 16px;
   width: 16px;
   border-radius: 50%;
-  box-shadow: 0 0 10px rgba(226, 232, 240, 0.2), 0 2px 4px rgba(0,0,0,0.5);
+  box-shadow: 0 0 10px rgba(212, 212, 216, 0.3), 0 2px 4px rgba(0,0,0,0.5);
 }
 .slider-nutrition::-moz-range-thumb {
-  background-color: #cbd5e1 !important;
+  background-color: #e2b842 !important;
   border: 1.5px solid #18181b !important;
   height: 16px;
   width: 16px;
   border-radius: 50%;
-  box-shadow: 0 0 10px rgba(203, 213, 225, 0.2), 0 2px 4px rgba(0,0,0,0.5);
+  box-shadow: 0 0 10px rgba(226, 184, 66, 0.3), 0 2px 4px rgba(0,0,0,0.5);
 }
 
 @keyframes float {

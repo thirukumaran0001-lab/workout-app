@@ -112,16 +112,16 @@ export default function AnalyticsView({ workouts, exercises }) {
     const areaPathData = `${pathData} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`;
 
     return (
-      <div className="relative bg-[#0c0d19]/40 border border-dark-border rounded-3xl p-4 shadow-2xl hover-card-glow">
+      <div className="relative bg-dark-card/45 border border-dark-border rounded-3xl p-4 shadow-2xl hover-card-glow">
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
           <defs>
             <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.12" />
-              <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#dfba4f" stopOpacity="0.08" />
+              <stop offset="100%" stopColor="#dfba4f" stopOpacity="0.0" />
             </linearGradient>
             <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#8b5cf6" />
-              <stop offset="100%" stopColor="#06b6d4" />
+              <stop offset="0%" stopColor="#dfba4f" />
+              <stop offset="100%" stopColor="#d4d4d8" />
             </linearGradient>
           </defs>
 
@@ -140,7 +140,7 @@ export default function AnalyticsView({ workouts, exercises }) {
               onMouseEnter={() => setHovered1RMPoint(p)}
               onMouseLeave={() => setHovered1RMPoint(null)}
             >
-              <circle cx={p.x} cy={p.y} r="4.5" fill="#03030b" stroke="#06b6d4" strokeWidth="2" className="transition-transform group-hover:scale-125" />
+              <circle cx={p.x} cy={p.y} r="4.5" fill="#08080a" stroke="#dfba4f" strokeWidth="2" className="transition-transform group-hover:scale-125" />
               
               <text x={p.x} y={p.y - 12} textAnchor="middle" fill="#e4e4e7" fontSize="9" fontWeight="bold" className="opacity-0 group-hover:opacity-100 transition-opacity font-mono pointer-events-none">
                 {p.value} kg
@@ -156,7 +156,7 @@ export default function AnalyticsView({ workouts, exercises }) {
         <div className="absolute inset-4 pointer-events-none overflow-visible">
           {hovered1RMPoint && (
             <div 
-              className="absolute z-30 pointer-events-none bg-zinc-950/95 backdrop-blur-md border border-brand-primary/30 rounded-2xl p-3 shadow-2xl transition-all duration-150 -translate-x-1/2 -translate-y-[110%] w-40"
+              className="absolute z-30 pointer-events-none bg-zinc-950/95 backdrop-blur-md border border-white/15 rounded-2xl p-3 shadow-2xl transition-all duration-150 -translate-x-1/2 -translate-y-[110%] w-40"
               style={{
                 left: `${(hovered1RMPoint.x / width) * 100}%`,
                 top: `${(hovered1RMPoint.y / height) * 100}%`
@@ -201,12 +201,12 @@ export default function AnalyticsView({ workouts, exercises }) {
     const chartHeight = height - 2 * padding;
 
     return (
-      <div className="relative bg-[#0c0d19]/40 border border-dark-border rounded-3xl p-4 shadow-2xl hover-card-glow">
+      <div className="relative bg-dark-card/45 border border-dark-border rounded-3xl p-4 shadow-2xl hover-card-glow">
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
           <defs>
             <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#06b6d4" />
-              <stop offset="100%" stopColor="#1a1c35" />
+              <stop offset="0%" stopColor="#dfba4f" />
+              <stop offset="100%" stopColor="#1e1c15" />
             </linearGradient>
           </defs>
 
@@ -283,7 +283,7 @@ export default function AnalyticsView({ workouts, exercises }) {
       {/* Vitals Telemetry Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         
-        <div className="bg-[#0c0d19]/40 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
+        <div className="bg-dark-card/45 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
           <div className="p-3 bg-zinc-950 border border-dark-border rounded-2xl text-brand-primary">
             <Calendar className="w-5 h-5" />
           </div>
@@ -293,7 +293,7 @@ export default function AnalyticsView({ workouts, exercises }) {
           </div>
         </div>
 
-        <div className="bg-[#0c0d19]/40 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
+        <div className="bg-dark-card/45 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
           <div className="p-3 bg-zinc-950 border border-dark-border rounded-2xl text-brand-secondary">
             <Dumbbell className="w-5 h-5" />
           </div>
@@ -303,7 +303,7 @@ export default function AnalyticsView({ workouts, exercises }) {
           </div>
         </div>
 
-        <div className="bg-[#0c0d19]/40 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
+        <div className="bg-dark-card/45 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
           <div className="p-3 bg-zinc-950 border border-dark-border rounded-2xl text-brand-accent">
             <Clock className="w-5 h-5" />
           </div>
@@ -313,13 +313,13 @@ export default function AnalyticsView({ workouts, exercises }) {
           </div>
         </div>
 
-        <div className="bg-[#0c0d19]/40 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
-          <div className="p-3 bg-zinc-950 border border-dark-border rounded-2xl text-emerald-400">
+        <div className="bg-dark-card/45 border border-dark-border p-4 rounded-3xl flex items-center space-x-3 hover-card-glow">
+          <div className="p-3 bg-zinc-950 border border-dark-border rounded-2xl text-zinc-300">
             <TrendingUp className="w-5 h-5" />
           </div>
           <div>
             <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-semibold font-mono">Progress State</p>
-            <h3 className="text-xl font-bold text-emerald-400 mt-0.5">Optimal</h3>
+            <h3 className="text-xl font-bold text-white mt-0.5">Optimal</h3>
           </div>
         </div>
 
