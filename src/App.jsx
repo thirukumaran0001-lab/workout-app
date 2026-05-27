@@ -72,8 +72,27 @@ export default function App() {
         const exRes = await fetch('/api/exercises');
         if (exRes.ok) {
           const exData = await exRes.json();
-          setExercisesCatalog(exData);
-          localStorage.setItem('telemetry_exercises', JSON.stringify(exData));
+          const localExRaw = localStorage.getItem('telemetry_exercises');
+          const localEx = localExRaw ? JSON.parse(localExRaw) : [];
+          const merged = [...exData];
+          let syncedAny = false;
+          for (const le of localEx) {
+            if (!merged.some(me => me.id === le.id)) {
+              merged.push(le);
+              syncedAny = true;
+              try {
+                await fetch('/api/exercises', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(le)
+                });
+              } catch (e) {
+                console.warn("Failed to sync local exercise to API:", e);
+              }
+            }
+          }
+          setExercisesCatalog(merged);
+          localStorage.setItem('telemetry_exercises', JSON.stringify(merged));
           exercisesLoaded = true;
         }
       } catch (err) {
@@ -102,8 +121,26 @@ export default function App() {
         const histRes = await fetch('/api/workouts');
         if (histRes.ok) {
           const histData = await histRes.json();
-          setWorkoutsHistory(histData);
-          localStorage.setItem('telemetry_workouts', JSON.stringify(histData));
+          const localHistRaw = localStorage.getItem('telemetry_workouts');
+          const localHist = localHistRaw ? JSON.parse(localHistRaw) : [];
+          const merged = [...histData];
+          for (const lw of localHist) {
+            if (!merged.some(mw => mw.id === lw.id)) {
+              merged.push(lw);
+              try {
+                await fetch('/api/workouts', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(lw)
+                });
+              } catch (e) {
+                console.warn("Failed to sync local workout to API:", e);
+              }
+            }
+          }
+          merged.sort((a, b) => a.id - b.id);
+          setWorkoutsHistory(merged);
+          localStorage.setItem('telemetry_workouts', JSON.stringify(merged));
           workoutsLoaded = true;
         }
       } catch (err) {
@@ -122,7 +159,20 @@ export default function App() {
         if (sessionRes.ok) {
           sessionData = await sessionRes.json();
           sessionLoaded = true;
-          if (sessionData) {
+          const localSessionRaw = localStorage.getItem('telemetry_session');
+          const localSession = localSessionRaw ? JSON.parse(localSessionRaw) : null;
+          if (!sessionData && localSession && localSession.isActive) {
+            sessionData = localSession;
+            try {
+              await fetch('/api/session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(sessionData)
+              });
+            } catch (e) {
+              console.warn("Failed to sync local session to API:", e);
+            }
+          } else if (sessionData) {
             localStorage.setItem('telemetry_session', JSON.stringify(sessionData));
           } else {
             localStorage.removeItem('telemetry_session');
