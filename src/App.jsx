@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Play, Square, Plus, Minus, CheckCircle, Trash2, Heart,
+  Play, Square, Plus, Minus, CheckCircle, Trash2,
   Flame, TrendingUp, Award, Clock, Calendar, BarChart2,
   ListPlus, ChevronRight, X, Sparkles, Volume2, Shield,
   Dumbbell, Moon, Zap, Apple, BookOpen, RotateCcw
@@ -9,73 +9,6 @@ import HomeDashboardView from './components/HomeDashboardView';
 import AnalyticsView from './components/AnalyticsView';
 import HistoryView from './components/HistoryView';
 import ExerciseLibraryView from './components/ExerciseLibraryView';
-
-// Lightweight background canvas particle animation
-function BackgroundParticles() {
-  const canvasRef = useRef(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let animationFrameId;
-
-    let width = (canvas.width = window.innerWidth);
-    let height = (canvas.height = window.innerHeight);
-
-    const handleResize = () => {
-      if (!canvas) return;
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    const particles = [];
-    const particleCount = 35;
-
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        radius: Math.random() * 1.5 + 0.5,
-        color: Math.random() > 0.5 ? 'rgba(223, 186, 79, 0.08)' : 'rgba(212, 212, 216, 0.08)',
-        vx: (Math.random() - 0.5) * 0.2,
-        vy: (Math.random() - 0.5) * 0.2,
-      });
-    }
-
-    const animate = () => {
-      ctx.clearRect(0, 0, width, height);
-
-      particles.forEach((p) => {
-        p.x += p.vx;
-        p.y += p.vy;
-
-        if (p.x < 0 || p.x > width) p.vx *= -1;
-        if (p.y < 0 || p.y > height) p.vy *= -1;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
-        ctx.shadowBlur = 4;
-        ctx.shadowColor = p.color;
-        ctx.fill();
-      });
-
-      animationFrameId = requestAnimationFrame(animate);
-    };
-
-    animate();
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, []);
-
-  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" />;
-}
 
 export default function App() {
 
@@ -104,56 +37,6 @@ export default function App() {
   const [showCelebration, setShowCelebration] = useState(false);
   const [completedWorkoutSummary, setCompletedWorkoutSummary] = useState(null);
 
-  // Telemetry simulation variables
-  const [simulatedHR, setSimulatedHR] = useState(78);
-  const [sessionHeartRates, setSessionHeartRates] = useState([]);
-  
-  // Cardiogram wave animation helper
-  const [pulsePhase, setPulsePhase] = useState(0);
-  useEffect(() => {
-    let anim = null;
-    if (sessionActive) {
-      anim = setInterval(() => {
-        setPulsePhase(prev => (prev + 1) % 100);
-      }, 50);
-    } else {
-      setPulsePhase(0);
-    }
-    return () => clearInterval(anim);
-  }, [sessionActive]);
-
-  const getHeartbeatPath = () => {
-    const points = [];
-    const width = 200;
-    const height = 40;
-    for (let x = 0; x <= width; x += 3) {
-      let y = height / 2;
-      const wavePos = (pulsePhase * 2.5) % (width + 60) - 30;
-      const dx = x - wavePos;
-      if (dx > -15 && dx < 15) {
-        if (dx > -15 && dx <= -10) y += (dx + 15) * 1.5;
-        else if (dx > -10 && dx <= -5) y -= (dx + 10) * 5;
-        else if (dx > -5 && dx <= 0) y += (dx + 5) * 7;
-        else if (dx > 0 && dx <= 5) y -= dx * 3;
-      }
-      points.push(`${x},${y}`);
-    }
-    return `M ${points.join(' L ')}`;
-  };
-
-  // Log simulated heart rate telemetry during active session
-  useEffect(() => {
-    let hrLogInterval = null;
-    if (sessionActive) {
-      hrLogInterval = setInterval(() => {
-        setSessionHeartRates(prev => [...prev, simulatedHR]);
-      }, 10000); // every 10 seconds
-    } else {
-      setSessionHeartRates([]);
-    }
-    return () => clearInterval(hrLogInterval);
-  }, [sessionActive, simulatedHR]);
-
   // Web Audio synth chime helper
   const playRestChime = () => {
     try {
@@ -179,22 +62,6 @@ export default function App() {
       console.warn("Audio Context failed: ", e);
     }
   };
-
-  // Simulated Heartbeat Loop
-  useEffect(() => {
-    const hrInterval = setInterval(() => {
-      setSimulatedHR(prev => {
-        const targetMin = isResting ? 68 : (sessionActive ? 115 : 72);
-        const targetMax = isResting ? 82 : (sessionActive ? 138 : 88);
-        const step = Math.random() > 0.5 ? 1 : -1;
-        const next = prev + step;
-        if (next < targetMin) return targetMin;
-        if (next > targetMax) return targetMax;
-        return next;
-      });
-    }, 1500);
-    return () => clearInterval(hrInterval);
-  }, [sessionActive, isResting]);
 
   // Load Initial Session State from Backend or LocalStorage
   useEffect(() => {
@@ -524,15 +391,6 @@ export default function App() {
       return sum + ex.sets.reduce((sSum, s) => sSum + ((parseFloat(s.weight) || 0) * (parseInt(s.reps) || 0)), 0);
     }, 0);
 
-    const finalHRLogs = sessionHeartRates.length >= 5
-      ? sessionHeartRates
-      : Array.from({ length: 15 }, (_, i) => {
-          const progress = i / 14;
-          const base = 75 + Math.sin(progress * Math.PI) * 45;
-          const fluctuation = Math.round((Math.random() - 0.5) * 8);
-          return Math.max(65, Math.min(150, Math.round(base + fluctuation)));
-        });
-
     const estimatedRestSec = totalSets * initialRestDuration;
     const restDuration = Math.min(sessionElapsed, estimatedRestSec);
     const activeDuration = sessionElapsed - restDuration;
@@ -543,7 +401,7 @@ export default function App() {
       date: new Date().toISOString(),
       elapsed: sessionElapsed,
       exercises: completedExs,
-      heartRates: finalHRLogs,
+      heartRates: [],
       activeDuration,
       restDuration
     };
@@ -561,7 +419,6 @@ export default function App() {
     setCurrentTab('dashboard');
     setSessionElapsed(0);
     setIsResting(false);
-    setSessionHeartRates([]);
     setSessionExercises([
       {
         id: 1,
@@ -580,7 +437,7 @@ export default function App() {
       sets: totalSets,
       volume: totalVolume,
       duration: Math.round(sessionElapsed / 60),
-      heartRates: finalHRLogs,
+      heartRates: [],
       activeDuration,
       restDuration,
       exercises: completedExs
@@ -626,9 +483,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-dark-bg text-zinc-100 font-sans bg-stealth-grid flex flex-col pb-16 relative overflow-hidden">
-      
-      {/* Dynamic particles background canvas */}
-      <BackgroundParticles />
 
       {/* Top Header */}
       <header className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 py-4 border-b border-dark-border mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4 z-10 relative">
@@ -639,9 +493,9 @@ export default function App() {
             </div>
             <div>
               <span className="font-display font-black text-sm tracking-widest bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
-                STRONGSPLIT
+                SLATE
               </span>
-              <p className="text-[8px] text-zinc-500 font-mono tracking-widest uppercase mt-0.5">TELEMETRY PLATFORM</p>
+              <p className="text-[8px] text-zinc-500 font-mono tracking-widest uppercase mt-0.5">WORKOUT TRACKER</p>
             </div>
           </div>
           
@@ -795,7 +649,7 @@ export default function App() {
                           />
                         </div>
                         <div className="flex justify-between items-center text-[8px] text-zinc-500 font-mono mt-1.5 px-1 uppercase tracking-wider">
-                          <span>Telemetry Log Progress</span>
+                          <span>Workout Progress</span>
                           <span>{pctDone}% done ({completedSetsInActiveSession}/{totalSetsInActiveSession} sets)</span>
                         </div>
                       </div>
@@ -1131,7 +985,7 @@ export default function App() {
                                 if (specificHistory.length === 0) {
                                   return (
                                     <div className="py-6 border border-dashed border-zinc-800 rounded-2xl text-center text-xs text-zinc-600 bg-zinc-900/10">
-                                      No past logs found in database. Complete this workout to log telemetry.
+                                      No past logs found. Complete this workout to log your history.
                                     </div>
                                   );
                                 }
@@ -1207,13 +1061,13 @@ export default function App() {
                       <circle cx="72" cy="72" r="40" stroke="rgba(255,255,255,0.02)" strokeWidth="6" fill="transparent" />
                       <circle 
                         cx="72" cy="72" r="40" 
-                        stroke={isResting ? '#dfba4f' : 'rgba(255,255,255,0.06)'} 
+                        stroke={isResting ? '#e0a98c' : 'rgba(255,255,255,0.06)'} 
                         strokeWidth="6" fill="transparent" 
                         strokeDasharray={strokeDash} 
                         strokeDashoffset={strokeOffset} 
                         strokeLinecap="round"
                         className="transition-all duration-1000 ease-linear"
-                        style={{ filter: isResting ? 'drop-shadow(0 0 8px rgba(223, 186, 79, 0.35))' : 'none' }}
+                        style={{ filter: isResting ? 'drop-shadow(0 0 8px rgba(224, 169, 140, 0.35))' : 'none' }}
                       />
                     </svg>
                     
@@ -1277,39 +1131,17 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Cyberpunk Live Stats Telemetry Card */}
+                {/* Session Stats Card */}
                 <div className="glass-panel rounded-3xl p-5 flex flex-col space-y-4 hover-card-glow">
                   <div className="flex justify-between items-center border-b border-dark-border pb-2">
-                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">BIOMETRIC Telemetry</span>
-                    <span className="text-[9px] text-brand-primary font-mono">SYS-LINK: ONLINE</span>
-                  </div>
-
-                  {/* Pulsing Cardiogram Row */}
-                  <div className="flex flex-col space-y-2 bg-dark-card/45 border border-dark-border p-3 rounded-2xl">
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center space-x-2">
-                        <Heart className="w-4 h-4 text-brand-accent animate-[pulse_0.8s_infinite]" />
-                        <span className="text-xs font-bold text-zinc-300">Biometric Heart Wave</span>
-                      </div>
-                      <span className="font-mono font-bold text-sm text-brand-accent">{simulatedHR} bpm</span>
-                    </div>
-                    <svg viewBox="0 0 200 40" className="w-full h-8 overflow-visible">
-                      <path
-                        d={getHeartbeatPath()}
-                        fill="none"
-                        stroke="#dfba4f"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="drop-shadow-[0_0_4px_rgba(223,186,79,0.45)]"
-                      />
-                    </svg>
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Session Stats</span>
+                    <span className="text-[9px] text-brand-primary font-mono">ACTIVE</span>
                   </div>
 
                   <div className="flex items-center justify-between p-3 bg-zinc-950/20 rounded-2xl border border-dark-border">
                     <div className="flex items-center space-x-2">
-                      <Flame className="w-4 h-4 text-brand-secondary animate-pulse" />
-                      <span className="text-xs font-bold text-zinc-300">Est. Intensity Rate</span>
+                      <Flame className="w-4 h-4 text-brand-secondary" />
+                      <span className="text-xs font-bold text-zinc-300">Est. Burned Energy</span>
                     </div>
                     <span className="font-display font-bold text-sm text-brand-secondary">
                       {sessionExercises.length > 0
@@ -1321,7 +1153,7 @@ export default function App() {
                   <div className="flex items-center justify-between p-3 bg-zinc-950/20 rounded-2xl border border-dark-border">
                     <div className="flex items-center space-x-2">
                       <Shield className="w-4 h-4 text-brand-primary" />
-                      <span className="text-xs font-bold text-zinc-300">Target Muscle Load</span>
+                      <span className="text-xs font-bold text-zinc-300">Muscle Groups</span>
                     </div>
                     <span className="font-display font-bold text-sm text-brand-primary">
                       {Array.from(new Set(sessionExercises.map(e => e.muscle))).length} areas
@@ -1369,82 +1201,7 @@ export default function App() {
         </div>
       )}
 
-      {/* Focus Mode Rest Timer Overlay */}
-      {isResting && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-lg z-50 flex items-center justify-center p-4">
-          <div className="glass-panel-glow border-brand-secondary/40 rounded-3xl w-full max-w-sm p-6 flex flex-col items-center justify-center text-center space-y-6 animate-float">
-            <div>
-              <span className="text-[9px] text-brand-secondary font-mono font-bold tracking-widest block uppercase mb-1">RECOVERY SEQUENCE ACTIVE</span>
-              <h2 className="text-lg font-display font-black text-white tracking-wide">ATP SYNTHESIS REST DIAL</h2>
-            </div>
 
-            {/* Large SVG Countdown */}
-            <div className="relative w-44 h-44 flex items-center justify-center">
-              <svg className="w-full h-full transform -rotate-90">
-                <circle cx="88" cy="88" r="55" stroke="rgba(255,255,255,0.015)" strokeWidth="6" fill="transparent" />
-                <circle 
-                  cx="88" cy="88" r="55" 
-                  stroke="#dfba4f" 
-                  strokeWidth="6" fill="transparent" 
-                  strokeDasharray={345.5} 
-                  strokeDashoffset={345.5 - (restTimer / initialRestDuration) * 345.5} 
-                  strokeLinecap="round"
-                  className="transition-all duration-1000 ease-linear"
-                  style={{ filter: 'drop-shadow(0 0 10px rgba(223, 186, 79, 0.45))' }}
-                />
-              </svg>
-              
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-4.5xl font-display font-black text-white tracking-tighter">
-                  {restTimer}
-                </span>
-                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-wider font-mono">SECONDS REMAINING</span>
-              </div>
-            </div>
-
-            {/* Presets and actions */}
-            <div className="w-full space-y-4">
-              <div className="grid grid-cols-4 gap-2">
-                {[30, 60, 90, 120].map(sec => (
-                  <button
-                    key={sec}
-                    onClick={() => {
-                      setInitialRestDuration(sec);
-                      setRestTimer(sec);
-                    }}
-                    className={`py-2 px-1 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-colors border cursor-pointer ${
-                      initialRestDuration === sec
-                        ? 'bg-brand-secondary/15 border-brand-secondary/30 text-brand-secondary shadow-[0_0_10px_rgba(223,186,79,0.08)]'
-                        : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
-                    }`}
-                  >
-                    {sec}s
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex space-x-2">
-                <button 
-                  onClick={() => setIsResting(false)}
-                  className="flex-1 py-3 bg-zinc-950 hover:bg-zinc-900 text-brand-accent border border-brand-accent/40 hover:border-brand-accent font-bold text-xs uppercase tracking-wider rounded-2xl cursor-pointer shadow-lg shadow-brand-accent/5 transition-premium"
-                >
-                  Skip Rest
-                </button>
-
-                <button 
-                  onClick={() => {
-                    setRestTimer(initialRestDuration);
-                  }}
-                  className="px-4 py-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 rounded-2xl cursor-pointer transition-colors"
-                  title="Reset Interval"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Modal: Append Exercise */}
       {showAddExModal && (
@@ -1458,7 +1215,7 @@ export default function App() {
             </button>
 
             <div>
-              <h3 className="text-md font-bold text-zinc-100 font-sans">Add Exercise Telemetry Node</h3>
+              <h3 className="text-md font-bold text-zinc-100 font-sans">Add Exercise</h3>
               <p className="text-xs text-zinc-500 mt-0.5">Select exercise to initialize in active stack</p>
             </div>
 
@@ -1498,9 +1255,9 @@ export default function App() {
             {/* Header */}
             <div className="flex justify-between items-center border-b border-dark-border pb-3">
               <div>
-                <span className="text-[9px] text-brand-accent font-mono font-bold tracking-widest block uppercase">LINK SYNC SUCCESSFUL</span>
-                <h2 className="text-lg font-display font-black text-white tracking-wide">WORKOUT TELEMETRY LOG</h2>
-              </div>
+              <span className="text-[9px] text-brand-secondary font-mono font-bold tracking-widest block uppercase mb-1">SESSION COMPLETE</span>
+              <h2 className="text-lg font-display font-black text-white tracking-wide">WORKOUT SUMMARY</h2>
+            </div>
               <div className="p-2 bg-brand-accent/10 border border-brand-accent/20 rounded-full">
                 <Award className="w-6 h-6 text-brand-accent drop-shadow-[0_0_8px_rgba(244,63,94,0.25)]" />
               </div>
@@ -1579,105 +1336,12 @@ export default function App() {
               );
             })()}
 
-            {/* Biometrics & Heart Rate Zone & Chart Layout */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              
-              {/* SVG Heart Rate Graph */}
-              {completedWorkoutSummary.heartRates && completedWorkoutSummary.heartRates.length > 0 && (
-                <div className="space-y-1.5">
-                  <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">HR Telemetry Log</h3>
-                  <div className="bg-[#0c0d19]/60 border border-dark-border p-3.5 rounded-2xl flex flex-col justify-center h-[120px]">
-                    <svg viewBox="0 0 200 80" className="w-full h-full overflow-visible">
-                      <defs>
-                        <linearGradient id="hrGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#cbd5e1" stopOpacity="0.12" />
-                          <stop offset="100%" stopColor="#cbd5e1" stopOpacity="0" />
-                        </linearGradient>
-                      </defs>
-                      
-                      <line x1="0" y1="40" x2="200" y2="40" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" strokeDasharray="2 2" />
-                      
-                      <path
-                        d={(() => {
-                          const points = completedWorkoutSummary.heartRates;
-                          return points.map((val, idx) => {
-                            const x = (idx * 200) / (points.length - 1 || 1);
-                            const y = 70 - ((val - 60) / 90) * 60;
-                            return `${idx === 0 ? 'M' : 'L'} ${x} ${y}`;
-                          }).join(' ');
-                        })()}
-                        fill="none"
-                        stroke="#cbd5e1"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-
-                      <path
-                        d={(() => {
-                          const points = completedWorkoutSummary.heartRates;
-                          const pathStr = points.map((val, idx) => {
-                            const x = (idx * 200) / (points.length - 1 || 1);
-                            const y = 70 - ((val - 60) / 90) * 60;
-                            return `${idx === 0 ? 'M' : 'L'} ${x} ${y}`;
-                          }).join(' ');
-                          return `${pathStr} L 200 75 L 0 75 Z`;
-                        })()}
-                        fill="url(#hrGrad)"
-                      />
-                      
-                      <text x="5" y="10" fill="#cbd5e1" fontSize="6" fontWeight="bold" className="font-mono">
-                        Max: {Math.max(...completedWorkoutSummary.heartRates)} bpm
-                      </text>
-                      <text x="5" y="76" fill="#71717a" fontSize="6" fontWeight="bold" className="font-mono">
-                        Min: {Math.min(...completedWorkoutSummary.heartRates)} bpm
-                      </text>
-                    </svg>
-                  </div>
-                </div>
-              )}
-
-              {/* Heart Rate Zones Distribution */}
-              {completedWorkoutSummary.heartRates && (
-                <div className="space-y-1.5">
-                  <h3 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">HR Training Zones</h3>
-                  <div className="bg-dark-card/60 border border-dark-border p-3 rounded-2xl flex flex-col justify-between h-[120px] text-[8px] font-mono">
-                    {(() => {
-                      const zones = [
-                        { name: "Peak (Anaerobic)", min: 135, max: 200, color: "bg-brand-accent" },
-                        { name: "Cardio (Aerobic)", min: 115, max: 135, color: "bg-brand-primary" },
-                        { name: "Fat Burn", min: 90, max: 115, color: "bg-brand-secondary" },
-                        { name: "Warm-up / Rest", min: 0, max: 90, color: "bg-zinc-800" }
-                      ];
-
-                      const totalLogs = completedWorkoutSummary.heartRates.length || 1;
-                      const zoneCounts = zones.map(z => {
-                        const count = completedWorkoutSummary.heartRates.filter(hr => hr >= z.min && hr < z.max).length;
-                        return { ...z, pct: Math.round((count / totalLogs) * 100) };
-                      });
-
-                      return zoneCounts.map((z, idx) => (
-                        <div key={idx} className="flex items-center justify-between space-x-2">
-                          <span className="text-zinc-400 font-semibold w-24 truncate">{z.name}</span>
-                          <div className="flex-1 bg-[#1a1a1d] h-2 rounded-full overflow-hidden flex">
-                            <div className={`${z.color} h-full`} style={{ width: `${z.pct}%` }} />
-                          </div>
-                          <span className="text-zinc-300 font-bold w-6 text-right">{z.pct}%</span>
-                        </div>
-                      ));
-                    })()}
-                  </div>
-                </div>
-              )}
-
-            </div>
-
             {/* Close button */}
             <button 
               onClick={() => setShowCelebration(false)}
               className="w-full py-3 bg-zinc-950 hover:bg-zinc-900 text-brand-secondary border border-brand-secondary/40 hover:border-brand-secondary font-bold text-xs uppercase tracking-wider rounded-2xl cursor-pointer shadow-lg shadow-brand-secondary/5 active:scale-95 transition-premium"
             >
-              CLOSE WORKOUT TELEMETRY MATRIX
+              CLOSE WORKOUT SUMMARY
             </button>
           </div>
 

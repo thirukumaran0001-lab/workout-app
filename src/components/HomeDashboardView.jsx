@@ -77,27 +77,6 @@ export default function HomeDashboardView({ workouts, onStartRoutine }) {
     month: 'short'
   });
 
-  // Calculate 7-Day Muscle Load Counts
-  const muscleLoadCounts = { Chest: 0, Back: 0, Legs: 0, Shoulders: 0, Arms: 0, Core: 0 };
-  workouts.forEach(w => {
-    const diffDays = Math.ceil(Math.abs(new Date() - new Date(w.date)) / (1000 * 60 * 60 * 24));
-    if (diffDays <= 7) {
-      w.exercises.forEach(ex => {
-        if (muscleLoadCounts[ex.muscle] !== undefined) {
-          muscleLoadCounts[ex.muscle] += ex.sets.length;
-        }
-      });
-    }
-  });
-
-  const getMuscleColor = (muscleName) => {
-    const count = muscleLoadCounts[muscleName] || 0;
-    if (count === 0) return 'rgba(255, 255, 255, 0.03)';
-    if (count <= 3) return 'rgba(212, 212, 216, 0.25)'; // Faint silver glow
-    if (count <= 8) return 'rgba(212, 212, 216, 0.65)'; // Raw Platinum
-    return 'rgba(223, 186, 79, 0.9)'; // Champagne Gold
-  };
-
   return (
     <div className="w-full max-w-5xl mx-auto flex flex-col space-y-6">
       
@@ -105,7 +84,7 @@ export default function HomeDashboardView({ workouts, onStartRoutine }) {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-white tracking-wide">Ready to Train?</h1>
-          <p className="text-xs text-zinc-500 font-mono mt-0.5 uppercase tracking-wider">{formattedDate} • TELEMETRY ACTIVE</p>
+          <p className="text-xs text-zinc-500 font-mono mt-0.5 uppercase tracking-wider">{formattedDate} • ACTIVE</p>
         </div>
         
         <button 
@@ -117,95 +96,19 @@ export default function HomeDashboardView({ workouts, onStartRoutine }) {
         </button>
       </div>
 
-      {/* Symmetric 2-Card Dashboard Panel */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Biomechanical Heatmap (Spans 2 columns on desktop) */}
-        <div className="lg:col-span-2 glass-panel rounded-3xl p-5 flex flex-col justify-between hover-card-glow relative overflow-hidden">
-          <div className="absolute -top-10 -right-10 w-24 h-24 bg-brand-primary/5 rounded-full blur-2xl pointer-events-none" />
-          
-          <div className="w-full flex justify-between items-center border-b border-dark-border pb-3 mb-4">
-            <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Biomechanics Heatmap</span>
-            <span className="text-[8px] font-mono text-zinc-500 uppercase">7D-LOAD STATE</span>
-          </div>
+      {/* Symmetric Dashboard Panel */}
+      <div className="grid grid-cols-1 gap-6">
 
-          <div className="flex flex-col md:flex-row items-center justify-around py-4 gap-6">
-            <div className="flex items-center justify-center">
-              <svg viewBox="0 0 160 200" className="w-32 h-auto overflow-visible">
-                {/* Head */}
-                <circle cx="80" cy="18" r="8" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-                
-                {/* Center neck line */}
-                <line x1="80" y1="26" x2="80" y2="35" stroke="rgba(255,255,255,0.15)" strokeWidth="1.5" />
-                
-                {/* Back / Lat Wings (Back) */}
-                <path d="M 66,42 L 54,70 L 68,82 Z" fill={getMuscleColor('Back')} stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" className="transition-all duration-300" />
-                <path d="M 94,42 L 106,70 L 92,82 Z" fill={getMuscleColor('Back')} stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" className="transition-all duration-300" />
-
-                {/* Shoulders (Shoulders) */}
-                <rect x="52" y="34" width="10" height="10" rx="2.5" fill={getMuscleColor('Shoulders')} stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" className="transition-all duration-300" />
-                <rect x="98" y="34" width="10" height="10" rx="2.5" fill={getMuscleColor('Shoulders')} stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" className="transition-all duration-300" />
-
-                {/* Chest (Chest) */}
-                <rect x="64" y="36" width="15" height="16" rx="2" fill={getMuscleColor('Chest')} stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" className="transition-all duration-300" />
-                <rect x="81" y="36" width="15" height="16" rx="2" fill={getMuscleColor('Chest')} stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" className="transition-all duration-300" />
-
-                {/* Arms (Arms) */}
-                {/* Left arm */}
-                <rect x="46" y="46" width="7" height="22" rx="1.5" fill={getMuscleColor('Arms')} stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" className="transition-all duration-300" />
-                <rect x="43" y="70" width="6" height="20" rx="1.5" fill={getMuscleColor('Arms')} stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" className="transition-all duration-300" />
-                {/* Right arm */}
-                <rect x="107" y="46" width="7" height="22" rx="1.5" fill={getMuscleColor('Arms')} stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" className="transition-all duration-300" />
-                <rect x="111" y="70" width="6" height="20" rx="1.5" fill={getMuscleColor('Arms')} stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" className="transition-all duration-300" />
-
-                {/* Core (Core) */}
-                <polygon points="65,54 95,54 91,82 69,82" fill={getMuscleColor('Core')} stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" className="transition-all duration-300" />
-
-                {/* Legs (Legs) */}
-                {/* Left leg */}
-                <rect x="64" y="86" width="14" height="42" rx="2.5" fill={getMuscleColor('Legs')} stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" className="transition-all duration-300" />
-                <rect x="66" y="132" width="10" height="38" rx="2" fill={getMuscleColor('Legs')} stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" className="transition-all duration-300" />
-                {/* Right leg */}
-                <rect x="82" y="86" width="14" height="42" rx="2.5" fill={getMuscleColor('Legs')} stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" className="transition-all duration-300" />
-                <rect x="84" y="132" width="10" height="38" rx="2" fill={getMuscleColor('Legs')} stroke="rgba(255,255,255,0.08)" strokeWidth="0.8" className="transition-all duration-300" />
-              </svg>
-            </div>
-
-            <div className="flex flex-col space-y-4 max-w-xs justify-center font-mono">
-              <p className="text-[11px] leading-relaxed text-zinc-400">
-                The biomechanics engine dynamically computes your loading index from sets completed in the last 7 days.
-              </p>
-              <div className="flex flex-col space-y-2 border-t border-dark-border/40 pt-3">
-                <span className="text-[9px] uppercase tracking-widest text-zinc-500 font-bold">LEGEND:</span>
-                <div className="flex items-center space-x-3 text-[10px]">
-                  <span className="flex items-center space-x-1.5">
-                    <span className="w-2.5 h-2.5 rounded-sm bg-zinc-900 border border-zinc-800" />
-                    <span className="text-zinc-500">Unloaded</span>
-                  </span>
-                  <span className="flex items-center space-x-1.5">
-                    <span className="w-2.5 h-2.5 rounded-sm bg-brand-secondary" />
-                    <span className="text-zinc-400">Active</span>
-                  </span>
-                  <span className="flex items-center space-x-1.5">
-                    <span className="w-2.5 h-2.5 rounded-sm bg-brand-primary" />
-                    <span className="text-brand-primary font-bold">Heavy</span>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Aggregate Stats Card (1 column on desktop) */}
+        {/* Aggregate Stats Card (Full width) */}
         <div className="glass-panel rounded-3xl p-5 flex flex-col justify-between hover-card-glow relative overflow-hidden">
           <div className="absolute -top-10 -right-10 w-24 h-24 bg-brand-primary/5 rounded-full blur-2xl pointer-events-none" />
           
           <div className="w-full flex justify-between items-center border-b border-dark-border pb-3 mb-4">
             <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Performance Index</span>
-            <span className="text-[8px] font-mono text-zinc-500 uppercase">TELEMETRY</span>
+            <span className="text-[8px] font-mono text-zinc-500 uppercase">SUMMARY</span>
           </div>
 
-          <div className="flex-1 flex flex-col justify-around py-2 space-y-5">
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6 py-2">
             <div className="space-y-1">
               <span className="text-[9px] text-zinc-500 uppercase tracking-widest font-semibold block font-mono">Total Volume</span>
               <span className="text-xl sm:text-2xl font-black font-mono text-white block">{(totalVolume).toLocaleString()} <span className="text-xs text-zinc-400 font-normal">kg</span></span>
@@ -214,7 +117,7 @@ export default function HomeDashboardView({ workouts, onStartRoutine }) {
               </div>
             </div>
 
-            <div className="space-y-1 border-t border-dark-border/40 pt-4">
+            <div className="space-y-1 border-t md:border-t-0 md:border-l border-dark-border/40 pt-4 md:pt-0 md:pl-6">
               <span className="text-[9px] text-zinc-500 uppercase tracking-widest font-semibold block font-mono">Active Duration</span>
               <span className="text-xl sm:text-2xl font-black font-mono text-white block">{(totalDurationMin / 60).toFixed(1)} <span className="text-xs text-zinc-400 font-normal font-sans">hrs</span></span>
               <div className="w-full bg-zinc-950/60 h-1.5 rounded-full overflow-hidden mt-1.5 border border-dark-border/40">
@@ -222,7 +125,7 @@ export default function HomeDashboardView({ workouts, onStartRoutine }) {
               </div>
             </div>
 
-            <div className="space-y-1 border-t border-dark-border/40 pt-4">
+            <div className="space-y-1 border-t md:border-t-0 md:border-l border-dark-border/40 pt-4 md:pt-0 md:pl-6">
               <span className="text-[9px] text-zinc-500 uppercase tracking-widest font-semibold block font-mono">Logged Sessions</span>
               <span className="text-xl sm:text-2xl font-black font-mono text-white block">{workouts.length} <span className="text-xs text-zinc-400 font-normal font-sans">runs</span></span>
               <div className="w-full bg-zinc-950/60 h-1.5 rounded-full overflow-hidden mt-1.5 border border-dark-border/40">

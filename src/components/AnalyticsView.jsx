@@ -116,12 +116,12 @@ export default function AnalyticsView({ workouts, exercises }) {
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
           <defs>
             <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#dfba4f" stopOpacity="0.08" />
-              <stop offset="100%" stopColor="#dfba4f" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#e0a98c" stopOpacity="0.08" />
+              <stop offset="100%" stopColor="#e0a98c" stopOpacity="0.0" />
             </linearGradient>
             <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#dfba4f" />
-              <stop offset="100%" stopColor="#d4d4d8" />
+              <stop offset="0%" stopColor="#e0a98c" />
+              <stop offset="100%" stopColor="#cbd5e1" />
             </linearGradient>
           </defs>
 
@@ -140,7 +140,7 @@ export default function AnalyticsView({ workouts, exercises }) {
               onMouseEnter={() => setHovered1RMPoint(p)}
               onMouseLeave={() => setHovered1RMPoint(null)}
             >
-              <circle cx={p.x} cy={p.y} r="4.5" fill="#08080a" stroke="#dfba4f" strokeWidth="2" className="transition-transform group-hover:scale-125" />
+              <circle cx={p.x} cy={p.y} r="4.5" fill="#060712" stroke="#e0a98c" strokeWidth="2" className="transition-transform group-hover:scale-125" />
               
               <text x={p.x} y={p.y - 12} textAnchor="middle" fill="#e4e4e7" fontSize="9" fontWeight="bold" className="opacity-0 group-hover:opacity-100 transition-opacity font-mono pointer-events-none">
                 {p.value} kg
@@ -205,8 +205,8 @@ export default function AnalyticsView({ workouts, exercises }) {
         <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto overflow-visible">
           <defs>
             <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#dfba4f" />
-              <stop offset="100%" stopColor="#1e1c15" />
+              <stop offset="0%" stopColor="#e0a98c" />
+              <stop offset="100%" stopColor="#141525" />
             </linearGradient>
           </defs>
 

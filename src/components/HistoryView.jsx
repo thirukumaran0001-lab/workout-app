@@ -111,56 +111,13 @@ export default function HistoryView({ workouts }) {
             {isExpanded && (
               <div className="border-t border-dark-border bg-zinc-950/20 p-5 space-y-5">
                 
-                {/* Visual Telemetry Matrix */}
+                {/* Visual Ratio breakdown */}
                 {(() => {
-                  const totalSets = workout.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
                   const activeSec = workout.activeDuration || Math.round(workout.elapsed * 0.65);
                   const restSec = workout.restDuration || (workout.elapsed - activeSec);
                   const totalSec = activeSec + restSec || 1;
                   const activePct = Math.round((activeSec / totalSec) * 100);
                   const restPct = 100 - activePct;
-                  
-                  const hrLogs = workout.heartRates && workout.heartRates.length > 0 
-                    ? workout.heartRates 
-                    : Array.from({ length: 12 }, (_, i) => {
-                        const progress = i / 11;
-                        const base = 72 + Math.sin(progress * Math.PI) * 48;
-                        const seed = (workout.id % 10) + i;
-                        const fluctuation = Math.round((Math.sin(seed) * 5));
-                        return Math.max(65, Math.min(145, Math.round(base + fluctuation)));
-                      });
-
-                  const getBezierPath = (points) => {
-                    const width = 200;
-                    const height = 50;
-                    const padding = 5;
-                    const chartWidth = width - 2 * padding;
-                    const chartHeight = height - 2 * padding;
-                    const minVal = 55;
-                    const maxVal = 155;
-                    const valRange = maxVal - minVal;
-
-                    const coords = points.map((val, idx) => {
-                      const x = padding + (idx * chartWidth) / (points.length - 1 || 1);
-                      const y = height - padding - ((val - minVal) / valRange) * chartHeight;
-                      return { x, y };
-                    });
-
-                    let path = `M ${coords[0].x} ${coords[0].y}`;
-                    for (let i = 0; i < coords.length - 1; i++) {
-                      const p0 = coords[i];
-                      const p1 = coords[i + 1];
-                      const cpX1 = p0.x + (p1.x - p0.x) / 2;
-                      const cpY1 = p0.y;
-                      const cpX2 = p0.x + (p1.x - p0.x) / 2;
-                      const cpY2 = p1.y;
-                      path += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${p1.x} ${p1.y}`;
-                    }
-                    const areaPath = `${path} L ${coords[coords.length - 1].x} ${height - padding} L ${coords[0].x} ${height - padding} Z`;
-                    return { path, areaPath, coords };
-                  };
-
-                  const hrChart = getBezierPath(hrLogs);
 
                   return (
                     <div className="space-y-4 border-b border-dark-border pb-4">
@@ -175,60 +132,6 @@ export default function HistoryView({ workouts }) {
                           <div className="bg-brand-secondary h-full" style={{ width: `${restPct}%` }} />
                         </div>
                       </div>
-
-                      {/* Side by side Heart Rate graph & Zones */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* SVG HR chart */}
-                        <div className="bg-dark-card/80 border border-dark-border p-3 rounded-2xl flex flex-col justify-center h-[95px]">
-                          <svg viewBox="0 0 200 50" className="w-full h-full overflow-visible">
-                            <defs>
-                              <linearGradient id={`hrGrad-${workout.id}`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="0%" stopColor="#dfba4f" stopOpacity="0.12" />
-                                <stop offset="100%" stopColor="#dfba4f" stopOpacity="0" />
-                              </linearGradient>
-                            </defs>
-                            <path d={hrChart.areaPath} fill={`url(#hrGrad-${workout.id})`} />
-                            <path d={hrChart.path} fill="none" stroke="#dfba4f" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                            
-                            {hrChart.coords.length > 0 && (() => {
-                              const peakIdx = hrLogs.indexOf(Math.max(...hrLogs));
-                              const peakCoord = hrChart.coords[peakIdx];
-                              return <circle cx={peakCoord.x} cy={peakCoord.y} r="2.5" fill="#020202" stroke="#dfba4f" strokeWidth="1" />;
-                            })()}
-
-                            <text x="2" y="8" fill="#e4e4e7" fontSize="5" fontWeight="bold" className="font-mono">Max: {Math.max(...hrLogs)} bpm</text>
-                            <text x="2" y="47" fill="#52525b" fontSize="5" fontWeight="bold" className="font-mono">Heart Rate Waveform</text>
-                          </svg>
-                        </div>
-
-                        {/* Zones */}
-                        <div className="bg-dark-card/80 border border-dark-border p-2.5 rounded-2xl flex flex-col justify-between h-[95px] text-[8px] font-mono">
-                          {(() => {
-                            const zones = [
-                              { name: "Anaerobic (Peak)", min: 135, max: 200, color: "bg-brand-accent" },
-                              { name: "Aerobic (Cardio)", min: 115, max: 135, color: "bg-brand-primary" },
-                              { name: "Fat Burn", min: 90, max: 115, color: "bg-brand-secondary" },
-                              { name: "Warm-up / Rest", min: 0, max: 90, color: "bg-zinc-800" }
-                            ];
-
-                            const totalCount = hrLogs.length || 1;
-                            return zones.map((z, zIdx) => {
-                              const count = hrLogs.filter(hr => hr >= z.min && hr < z.max).length;
-                              const pct = Math.round((count / totalCount) * 100);
-                              return (
-                                <div key={zIdx} className="flex items-center justify-between space-x-2">
-                                  <span className="text-zinc-400 w-24 truncate">{z.name}</span>
-                                  <div className="flex-1 bg-zinc-950 h-1.5 rounded-full overflow-hidden">
-                                    <div className={`${z.color} h-full`} style={{ width: `${pct}%` }} />
-                                  </div>
-                                  <span className="text-zinc-300 w-5 text-right">{pct}%</span>
-                                </div>
-                              );
-                            });
-                          })()}
-                        </div>
-                      </div>
-
                     </div>
                   );
                 })()}
