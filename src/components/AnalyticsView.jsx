@@ -3,6 +3,8 @@ import { TrendingUp, BarChart2, Calendar, Dumbbell, Clock } from 'lucide-react';
 
 export default function AnalyticsView({ workouts, exercises }) {
   const [selectedExerciseId, setSelectedExerciseId] = useState(1);
+  const [hovered1RMPoint, setHovered1RMPoint] = useState(null);
+  const [hoveredVolumeBar, setHoveredVolumeBar] = useState(null);
 
   const calculate1RM = (weight, reps) => {
     if (reps === 1) return weight;
@@ -17,11 +19,23 @@ export default function AnalyticsView({ workouts, exercises }) {
       if (!matchEx) return null;
       const completedSets = matchEx.sets.filter(s => s.completed && s.weight > 0 && s.reps > 0);
       if (completedSets.length === 0) return null;
-      const max1RM = Math.max(...completedSets.map(s => calculate1RM(s.weight, s.reps)));
+      
+      let max1RM = 0;
+      let bestSet = null;
+      completedSets.forEach(s => {
+        const est1RM = calculate1RM(s.weight, s.reps);
+        if (est1RM > max1RM) {
+          max1RM = est1RM;
+          bestSet = s;
+        }
+      });
+
       return {
         date: new Date(w.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
         rawDate: new Date(w.date),
-        val: max1RM
+        val: max1RM,
+        weight: bestSet ? bestSet.weight : 0,
+        reps: bestSet ? bestSet.reps : 0
       };
     })
     .filter(Boolean)
@@ -30,17 +44,20 @@ export default function AnalyticsView({ workouts, exercises }) {
   const volumeData = workouts
     .map(w => {
       let sessionVolume = 0;
+      let totalSets = 0;
       w.exercises.forEach(ex => {
         ex.sets.forEach(s => {
           if (s.completed) {
             sessionVolume += (s.weight || 0) * (s.reps || 0);
+            totalSets += 1;
           }
         });
       });
       return {
         date: new Date(w.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
         rawDate: new Date(w.date),
-        val: sessionVolume
+        val: sessionVolume,
+        totalSets
       };
     })
     .filter(d => d.val > 0)
@@ -78,7 +95,7 @@ export default function AnalyticsView({ workouts, exercises }) {
     const points = data.map((d, index) => {
       const x = padding + (index * (width - 2 * padding)) / (data.length - 1 || 1);
       const y = height - padding - ((d.val - minVal) * (height - 2 * padding)) / valRange;
-      return { x, y, label: d.date, value: d.val };
+      return { x, y, label: d.date, value: d.val, weight: d.weight, reps: d.reps };
     });
 
     let pathData = `M ${points[0].x} ${points[0].y}`;
@@ -117,7 +134,12 @@ export default function AnalyticsView({ workouts, exercises }) {
           {pathData && <path d={pathData} fill="none" stroke="url(#lineGradient)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />}
 
           {points.map((p, i) => (
-            <g key={i} className="group cursor-pointer">
+            <g 
+              key={i} 
+              className="group cursor-pointer"
+              onMouseEnter={() => setHovered1RMPoint(p)}
+              onMouseLeave={() => setHovered1RMPoint(null)}
+            >
               <circle cx={p.x} cy={p.y} r="4.5" fill="#03030b" stroke="#06b6d4" strokeWidth="2" className="transition-transform group-hover:scale-125" />
               
               <text x={p.x} y={p.y - 12} textAnchor="middle" fill="#e4e4e7" fontSize="9" fontWeight="bold" className="opacity-0 group-hover:opacity-100 transition-opacity font-mono pointer-events-none">
@@ -129,6 +151,35 @@ export default function AnalyticsView({ workouts, exercises }) {
             </g>
           ))}
         </svg>
+
+        {/* Floating Glassmorphic Tooltip Capsule */}
+        <div className="absolute inset-4 pointer-events-none overflow-visible">
+          {hovered1RMPoint && (
+            <div 
+              className="absolute z-30 pointer-events-none bg-zinc-950/95 backdrop-blur-md border border-brand-primary/30 rounded-2xl p-3 shadow-2xl transition-all duration-150 -translate-x-1/2 -translate-y-[110%] w-40"
+              style={{
+                left: `${(hovered1RMPoint.x / width) * 100}%`,
+                top: `${(hovered1RMPoint.y / height) * 100}%`
+              }}
+            >
+              <div className="text-[10px] uppercase tracking-widest text-zinc-500 font-mono font-bold">
+                {hovered1RMPoint.label}
+              </div>
+              <div className="text-sm font-bold text-white font-mono mt-0.5">
+                {hovered1RMPoint.value} kg
+              </div>
+              <div className="text-[10px] text-zinc-400 font-mono mt-0.5">
+                Estimated 1RM
+              </div>
+              {hovered1RMPoint.weight > 0 && (
+                <div className="border-t border-zinc-800/60 mt-1.5 pt-1.5 flex justify-between items-center text-[10px] text-brand-secondary font-mono">
+                  <span>Best Set:</span>
+                  <span>{hovered1RMPoint.weight}kg × {hovered1RMPoint.reps}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     );
   };
@@ -170,7 +221,18 @@ export default function AnalyticsView({ workouts, exercises }) {
             const y = height - padding - barHeight;
 
             return (
-              <g key={index} className="group cursor-pointer">
+              <g 
+                key={index} 
+                className="group cursor-pointer"
+                onMouseEnter={() => setHoveredVolumeBar({
+                  x: x + barWidth / 2,
+                  y: y,
+                  label: d.date,
+                  value: d.val,
+                  totalSets: d.totalSets
+                })}
+                onMouseLeave={() => setHoveredVolumeBar(null)}
+              >
                 <rect x={x} y={y} width={barWidth} height={barHeight} rx="3" fill="url(#barGradient)" className="transition-all hover:opacity-80" />
                 <text x={x + barWidth / 2} y={y - 8} textAnchor="middle" fill="#e4e4e7" fontSize="9" fontWeight="bold" className="opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none font-mono">
                   {d.val} kg
@@ -182,6 +244,35 @@ export default function AnalyticsView({ workouts, exercises }) {
             );
           })}
         </svg>
+
+        {/* Floating Glassmorphic Tooltip Capsule */}
+        <div className="absolute inset-4 pointer-events-none overflow-visible">
+          {hoveredVolumeBar && (
+            <div 
+              className="absolute z-30 pointer-events-none bg-zinc-950/95 backdrop-blur-md border border-brand-secondary/30 rounded-2xl p-3 shadow-2xl transition-all duration-150 -translate-x-1/2 -translate-y-[110%] w-40"
+              style={{
+                left: `${(hoveredVolumeBar.x / width) * 100}%`,
+                top: `${(hoveredVolumeBar.y / height) * 100}%`
+              }}
+            >
+              <div className="text-[10px] uppercase tracking-widest text-zinc-500 font-mono font-bold">
+                {hoveredVolumeBar.label}
+              </div>
+              <div className="text-sm font-bold text-white font-mono mt-0.5">
+                {hoveredVolumeBar.value.toLocaleString()} kg
+              </div>
+              <div className="text-[10px] text-zinc-400 font-mono mt-0.5">
+                Load Volume
+              </div>
+              {hoveredVolumeBar.totalSets > 0 && (
+                <div className="border-t border-zinc-800/60 mt-1.5 pt-1.5 flex justify-between items-center text-[10px] text-brand-accent font-mono">
+                  <span>Logged Sets:</span>
+                  <span>{hoveredVolumeBar.totalSets}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     );
   };

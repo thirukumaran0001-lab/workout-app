@@ -10,6 +10,73 @@ import AnalyticsView from './components/AnalyticsView';
 import HistoryView from './components/HistoryView';
 import ExerciseLibraryView from './components/ExerciseLibraryView';
 
+// Lightweight background canvas particle animation
+function BackgroundParticles() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const handleResize = () => {
+      if (!canvas) return;
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    const particles = [];
+    const particleCount = 35;
+
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        radius: Math.random() * 1.5 + 0.5,
+        color: Math.random() > 0.5 ? 'rgba(139, 92, 246, 0.12)' : 'rgba(6, 182, 212, 0.12)',
+        vx: (Math.random() - 0.5) * 0.2,
+        vy: (Math.random() - 0.5) * 0.2,
+      });
+    }
+
+    const animate = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      particles.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0 || p.x > width) p.vx *= -1;
+        if (p.y < 0 || p.y > height) p.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = p.color;
+        ctx.fill();
+      });
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" />;
+}
+
 export default function App() {
 
   // Navigation and active UI tabs
@@ -25,6 +92,7 @@ export default function App() {
   const [sessionActive, setSessionActive] = useState(false);
   const [sessionExercises, setSessionExercises] = useState([]);
   const [exerciseSubTabs, setExerciseSubTabs] = useState({});
+  const [collapsedExercises, setCollapsedExercises] = useState({});
 
   // Rest Timer
   const [restTimer, setRestTimer] = useState(90);
@@ -369,6 +437,10 @@ export default function App() {
     }));
   };
 
+  const toggleExerciseCollapse = (exId) => {
+    setCollapsedExercises(prev => ({ ...prev, [exId]: !prev[exId] }));
+  };
+
   const addSetToExercise = (exerciseId) => {
     setSessionExercises(prev => prev.map(ex => {
       if (ex.id !== exerciseId) return ex;
@@ -553,10 +625,13 @@ export default function App() {
     : strokeDash;
 
   return (
-    <div className="min-h-screen bg-dark-bg text-zinc-100 font-sans bg-stealth-grid flex flex-col pb-16">
+    <div className="min-h-screen bg-dark-bg text-zinc-100 font-sans bg-stealth-grid flex flex-col pb-16 relative overflow-hidden">
       
+      {/* Dynamic particles background canvas */}
+      <BackgroundParticles />
+
       {/* Top Header */}
-      <header className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 py-4 border-b border-dark-border mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4 z-10">
+      <header className="max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 py-4 border-b border-dark-border mb-6 flex flex-col md:flex-row md:justify-between md:items-center gap-4 z-10 relative">
         <div className="flex items-center justify-between md:justify-start space-x-4">
           <div className="flex items-center space-x-2.5 text-white">
             <div className="p-2 bg-brand-primary/10 border border-brand-primary/20 rounded-xl">
@@ -616,7 +691,7 @@ export default function App() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 z-10">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 md:px-8 z-10 relative">
         
         {currentTab === 'dashboard' && (
           <HomeDashboardView 
@@ -731,6 +806,7 @@ export default function App() {
                 {/* Workout Exercises */}
                 {sessionExercises.map((exercise) => {
                   const activeSubTab = exerciseSubTabs[exercise.id] || 'sets';
+                  const isCollapsed = collapsedExercises[exercise.id];
                   
                   const setSubTab = (tab) => {
                     setExerciseSubTabs(prev => ({ ...prev, [exercise.id]: tab }));
@@ -790,11 +866,20 @@ export default function App() {
 
                       {/* Exercise Header */}
                       <div className="flex justify-between items-start border-b border-dark-border pb-3">
-                        <div>
-                          <h3 className="text-md font-bold text-zinc-200 font-sans tracking-wide">{exercise.name}</h3>
-                          <span className="inline-block text-[9px] font-bold tracking-wider text-brand-secondary bg-brand-secondary/10 border border-brand-secondary/20 px-2 py-0.5 rounded mt-1.5 uppercase font-mono">
-                            {exercise.muscle}
-                          </span>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => toggleExerciseCollapse(exercise.id)}
+                            className="text-zinc-500 hover:text-white transition-colors cursor-pointer p-0.5 hover:bg-zinc-800/40 rounded-lg"
+                            title={isCollapsed ? "Expand Details" : "Collapse Details"}
+                          >
+                            <ChevronRight className={`w-4 h-4 transition-transform duration-200 text-brand-secondary ${isCollapsed ? '' : 'rotate-90'}`} />
+                          </button>
+                          <div>
+                            <h3 className="text-md font-bold text-zinc-200 font-sans tracking-wide inline-block">{exercise.name}</h3>
+                            <span className="inline-block text-[9px] font-bold tracking-wider text-brand-secondary bg-brand-secondary/10 border border-brand-secondary/20 px-2 py-0.5 rounded ml-2.5 uppercase font-mono">
+                              {exercise.muscle}
+                            </span>
+                          </div>
                         </div>
 
                         <button 
@@ -806,265 +891,279 @@ export default function App() {
                         </button>
                       </div>
 
-                      {/* Exercise Sub-Tabs */}
-                      <div className="flex space-x-1 border-b border-dark-border pb-2 text-[10px] font-bold uppercase tracking-wider">
-                        {['sets', 'insights', 'guide', 'history'].map((tab) => (
-                          <button
-                            key={tab}
-                            onClick={() => setSubTab(tab)}
-                            className={`py-1.5 px-3 rounded-lg transition-premium cursor-pointer ${
-                              activeSubTab === tab 
-                                ? 'bg-zinc-950 border border-dark-border text-brand-secondary font-bold' 
-                                : 'text-zinc-500 hover:text-zinc-300'
-                            }`}
-                          >
-                            {tab}
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Sub-Tab Contents */}
-                      {activeSubTab === 'sets' && (
-                        <div className="space-y-4">
-                          {/* Sets Table */}
-                          <div className="space-y-2">
-                            <div className="hidden sm:grid grid-cols-12 gap-2 text-[9px] font-bold text-zinc-500 tracking-wider uppercase px-2">
-                              <div className="col-span-2 text-center">Set</div>
-                              <div className="col-span-4 text-center">Weight (kg)</div>
-                              <div className="col-span-4 text-center">Reps</div>
-                              <div className="col-span-1 text-center">Done</div>
-                              <div className="col-span-1"></div>
-                            </div>
-
-                            {exercise.sets.map((set, index) => (
-                              <div 
-                                key={set.id} 
-                                className={`grid grid-cols-12 gap-y-3 gap-x-2 items-center p-3 sm:p-1.5 rounded-2xl border border-zinc-900/60 sm:border-transparent transition-premium ${
-                                  set.completed ? 'bg-brand-primary/5 border-brand-primary/10' : ''
+                      {isCollapsed ? (
+                        <div className="p-3.5 bg-[#0c0d19]/30 border border-dark-border rounded-2xl flex items-center justify-between text-xs font-mono text-zinc-400">
+                          <span className="flex items-center space-x-1.5">
+                            <Dumbbell className="w-4 h-4 text-brand-primary animate-pulse" />
+                            <span>{exercise.sets.length} sets logged ({exercise.sets.filter(s => s.completed).length} completed)</span>
+                          </span>
+                          <span className="text-zinc-200 font-bold">
+                            Total Vol: {Math.round(exercise.sets.reduce((sum, s) => sum + (s.completed ? (parseFloat(s.weight) || 0) * (parseInt(s.reps) || 0) : 0), 0))} kg
+                          </span>
+                        </div>
+                      ) : (
+                        <>
+                          {/* Exercise Sub-Tabs */}
+                          <div className="flex space-x-1 border-b border-dark-border pb-2 text-[10px] font-bold uppercase tracking-wider">
+                            {['sets', 'insights', 'guide', 'history'].map((tab) => (
+                              <button
+                                key={tab}
+                                onClick={() => setSubTab(tab)}
+                                className={`py-1.5 px-3 rounded-lg transition-premium cursor-pointer ${
+                                  activeSubTab === tab 
+                                    ? 'bg-zinc-950 border border-dark-border text-brand-secondary font-bold' 
+                                    : 'text-zinc-500 hover:text-zinc-300'
                                 }`}
                               >
-                                {/* Set Index */}
-                                <div className="col-span-2 sm:col-span-2 text-left sm:text-center px-1">
-                                  <span className="text-[10px] font-bold font-mono text-zinc-400">
-                                    Set {index + 1}
-                                  </span>
-                                </div>
-
-                                {/* Weight Input with +/- Buttons */}
-                                <div className="col-span-4 sm:col-span-4 flex items-center justify-start sm:justify-center space-x-1">
-                                  <button
-                                    type="button"
-                                    disabled={set.completed}
-                                    onClick={() => handleSetChange(exercise.id, set.id, 'weight', Math.max(0, (set.weight || 0) - 2.5))}
-                                    className="w-6 h-6 rounded-lg bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                                  >
-                                    <Minus className="w-3 h-3" />
-                                  </button>
-                                  <input 
-                                    type="number"
-                                    value={set.weight || ''}
-                                    onChange={(e) => handleSetChange(exercise.id, set.id, 'weight', parseFloat(e.target.value) || 0)}
-                                    disabled={set.completed}
-                                    className="w-14 bg-zinc-950 border border-zinc-900 rounded-lg py-1 font-mono text-xs text-white text-center focus:outline-none focus:border-brand-primary disabled:opacity-60"
-                                    placeholder="0"
-                                  />
-                                  <button
-                                    type="button"
-                                    disabled={set.completed}
-                                    onClick={() => handleSetChange(exercise.id, set.id, 'weight', (set.weight || 0) + 2.5)}
-                                    className="w-6 h-6 rounded-lg bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                                  >
-                                    <Plus className="w-3 h-3" />
-                                  </button>
-                                </div>
-
-                                {/* Reps Input with +/- Buttons */}
-                                <div className="col-span-3 sm:col-span-4 flex items-center justify-start sm:justify-center space-x-1">
-                                  <button
-                                    type="button"
-                                    disabled={set.completed}
-                                    onClick={() => handleSetChange(exercise.id, set.id, 'reps', Math.max(0, (set.reps || 0) - 1))}
-                                    className="w-6 h-6 rounded-lg bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                                  >
-                                    <Minus className="w-3 h-3" />
-                                  </button>
-                                  <input 
-                                    type="number"
-                                    value={set.reps || ''}
-                                    onChange={(e) => handleSetChange(exercise.id, set.id, 'reps', parseInt(e.target.value) || 0)}
-                                    disabled={set.completed}
-                                    className="w-10 bg-zinc-950 border border-zinc-900 rounded-lg py-1 font-mono text-xs text-white text-center focus:outline-none focus:border-brand-primary disabled:opacity-60"
-                                    placeholder="0"
-                                  />
-                                  <button
-                                    type="button"
-                                    disabled={set.completed}
-                                    onClick={() => handleSetChange(exercise.id, set.id, 'reps', (set.reps || 0) + 1)}
-                                    className="w-6 h-6 rounded-lg bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
-                                  >
-                                    <Plus className="w-3 h-3" />
-                                  </button>
-                                </div>
-
-                                {/* Complete Button */}
-                                <div className="col-span-2 sm:col-span-1 flex justify-end sm:justify-center">
-                                  <button 
-                                    onClick={() => toggleSetComplete(exercise.id, set.id)}
-                                    className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-premium active:scale-75 cursor-pointer ${
-                                      set.completed 
-                                        ? 'bg-brand-primary/20 border-brand-primary text-brand-primary shadow-[0_0_12px_rgba(139,92,246,0.25)]' 
-                                        : 'bg-zinc-950 border-zinc-800 text-zinc-600 hover:text-zinc-400'
-                                    }`}
-                                  >
-                                    <CheckCircle className="w-3.5 h-3.5 fill-current" />
-                                  </button>
-                                </div>
-
-                                {/* Set Delete */}
-                                <div className="col-span-1 flex justify-end sm:justify-center">
-                                  <button 
-                                    onClick={() => removeSetFromExercise(exercise.id, set.id)}
-                                    className="text-zinc-600 hover:text-brand-accent transition-colors cursor-pointer"
-                                  >
-                                    <X className="w-3.5 h-3.5" />
-                                  </button>
-                                </div>
-                              </div>
+                                {tab}
+                              </button>
                             ))}
                           </div>
 
-                          {/* Add Set */}
-                          <button 
-                            onClick={() => addSetToExercise(exercise.id)}
-                            className="w-full py-2.5 border border-dashed border-zinc-800 hover:border-zinc-700 rounded-2xl flex items-center justify-center space-x-2 text-xs font-bold text-zinc-400 hover:text-zinc-200 transition-premium bg-zinc-900/10 cursor-pointer"
-                          >
-                            <Plus className="w-4 h-4" />
-                            <span>Add Exercise Set</span>
-                          </button>
-                        </div>
-                      )}
+                          {/* Sub-Tab Contents */}
+                          {activeSubTab === 'sets' && (
+                            <div className="space-y-4">
+                              {/* Sets Table */}
+                              <div className="space-y-2">
+                                <div className="hidden sm:grid grid-cols-12 gap-2 text-[9px] font-bold text-zinc-500 tracking-wider uppercase px-2">
+                                  <div className="col-span-2 text-center">Set</div>
+                                  <div className="col-span-4 text-center">Weight (kg)</div>
+                                  <div className="col-span-4 text-center">Reps</div>
+                                  <div className="col-span-1 text-center">Done</div>
+                                  <div className="col-span-1"></div>
+                                </div>
 
-                      {activeSubTab === 'insights' && (
-                        <div className="space-y-4">
-                          <div className="bg-[#0c0d19]/40 border border-dark-border rounded-2xl p-4 flex justify-between items-center">
-                            <div>
-                              <span className="text-[10px] text-zinc-500 font-bold uppercase block">Est. 1-Rep Max</span>
-                              <span className="text-xl font-display font-black text-brand-secondary mt-1 block">{maxHistorical1RM} kg</span>
-                            </div>
-                            
-                            <div className="text-right">
-                              <span className="text-[10px] text-zinc-500 font-bold uppercase block">Peak Session Vol</span>
-                              <span className="text-sm font-mono font-bold text-white mt-1 block">
-                                {Math.round(exercise.sets.reduce((sum, s) => sum + (s.completed ? s.weight * s.reps : 0), 0))} kg
-                              </span>
-                            </div>
-                          </div>
+                                {exercise.sets.map((set, index) => (
+                                  <div 
+                                    key={set.id} 
+                                    className={`grid grid-cols-12 gap-y-3 gap-x-2 items-center p-3 sm:p-1.5 rounded-2xl border border-zinc-900/60 sm:border-transparent transition-premium ${
+                                      set.completed ? 'bg-brand-primary/5 border-brand-primary/10' : ''
+                                    }`}
+                                  >
+                                    {/* Set Index */}
+                                    <div className="col-span-2 sm:col-span-2 text-left sm:text-center px-1">
+                                      <span className="text-[10px] font-bold font-mono text-zinc-400">
+                                        Set {index + 1}
+                                      </span>
+                                    </div>
 
-                          {/* %1RM Progressive Overload Table */}
-                          <div className="space-y-2">
-                            <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-1">Progressive Overload Target Table</h4>
-                            <div className="grid grid-cols-5 gap-2 text-center text-[10px] font-mono">
-                              {[100, 90, 85, 80, 75].map((pct) => (
-                                <div key={pct} className="bg-zinc-950/40 border border-dark-border p-2 rounded-xl">
-                                  <span className="text-[9px] text-zinc-500 font-bold block">{pct}% 1RM</span>
-                                  <span className="text-xs font-bold text-zinc-200 mt-1 block">{Math.round(maxHistorical1RM * (pct / 100))} kg</span>
-                                  <span className="text-[8px] text-zinc-600 block mt-0.5">
-                                    {pct === 100 ? '1 rep' : pct === 90 ? '4-5 reps' : pct === 85 ? '6-7 reps' : pct === 80 ? '8-10 reps' : '10-12 reps'}
+                                    {/* Weight Input with +/- Buttons */}
+                                    <div className="col-span-4 sm:col-span-4 flex items-center justify-start sm:justify-center space-x-1">
+                                      <button
+                                        type="button"
+                                        disabled={set.completed}
+                                        onClick={() => handleSetChange(exercise.id, set.id, 'weight', Math.max(0, (set.weight || 0) - 2.5))}
+                                        className="w-6 h-6 rounded-lg bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                                      >
+                                        <Minus className="w-3 h-3" />
+                                      </button>
+                                      <input 
+                                        type="number"
+                                        value={set.weight || ''}
+                                        onChange={(e) => handleSetChange(exercise.id, set.id, 'weight', parseFloat(e.target.value) || 0)}
+                                        disabled={set.completed}
+                                        className="w-14 bg-zinc-950 border border-zinc-900 rounded-lg py-1 font-mono text-xs text-white text-center focus:outline-none focus:border-brand-primary disabled:opacity-60"
+                                        placeholder="0"
+                                      />
+                                      <button
+                                        type="button"
+                                        disabled={set.completed}
+                                        onClick={() => handleSetChange(exercise.id, set.id, 'weight', (set.weight || 0) + 2.5)}
+                                        className="w-6 h-6 rounded-lg bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                                      >
+                                        <Plus className="w-3 h-3" />
+                                      </button>
+                                    </div>
+
+                                    {/* Reps Input with +/- Buttons */}
+                                    <div className="col-span-3 sm:col-span-4 flex items-center justify-start sm:justify-center space-x-1">
+                                      <button
+                                        type="button"
+                                        disabled={set.completed}
+                                        onClick={() => handleSetChange(exercise.id, set.id, 'reps', Math.max(0, (set.reps || 0) - 1))}
+                                        className="w-6 h-6 rounded-lg bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                                      >
+                                        <Minus className="w-3 h-3" />
+                                      </button>
+                                      <input 
+                                        type="number"
+                                        value={set.reps || ''}
+                                        onChange={(e) => handleSetChange(exercise.id, set.id, 'reps', parseInt(e.target.value) || 0)}
+                                        disabled={set.completed}
+                                        className="w-10 bg-zinc-950 border border-zinc-900 rounded-lg py-1 font-mono text-xs text-white text-center focus:outline-none focus:border-brand-primary disabled:opacity-60"
+                                        placeholder="0"
+                                      />
+                                      <button
+                                        type="button"
+                                        disabled={set.completed}
+                                        onClick={() => handleSetChange(exercise.id, set.id, 'reps', (set.reps || 0) + 1)}
+                                        className="w-6 h-6 rounded-lg bg-zinc-900 hover:bg-zinc-800 disabled:opacity-30 flex items-center justify-center text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                                      >
+                                        <Plus className="w-3 h-3" />
+                                      </button>
+                                    </div>
+
+                                    {/* Complete Button */}
+                                    <div className="col-span-2 sm:col-span-1 flex justify-end sm:justify-center">
+                                      <button 
+                                        onClick={() => toggleSetComplete(exercise.id, set.id)}
+                                        className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-premium active:scale-75 cursor-pointer ${
+                                          set.completed 
+                                            ? 'bg-brand-primary/20 border-brand-primary text-brand-primary shadow-[0_0_12px_rgba(139,92,246,0.25)]' 
+                                            : 'bg-zinc-950 border-zinc-800 text-zinc-600 hover:text-zinc-400'
+                                        }`}
+                                      >
+                                        <CheckCircle className="w-3.5 h-3.5 fill-current" />
+                                      </button>
+                                    </div>
+
+                                    {/* Set Delete */}
+                                    <div className="col-span-1 flex justify-end sm:justify-center">
+                                      <button 
+                                        onClick={() => removeSetFromExercise(exercise.id, set.id)}
+                                        className="text-zinc-600 hover:text-brand-accent transition-colors cursor-pointer"
+                                      >
+                                        <X className="w-3.5 h-3.5" />
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* Add Set */}
+                              <button 
+                                onClick={() => addSetToExercise(exercise.id)}
+                                className="w-full py-2.5 border border-dashed border-zinc-800 hover:border-zinc-700 rounded-2xl flex items-center justify-center space-x-2 text-xs font-bold text-zinc-400 hover:text-zinc-200 transition-premium bg-zinc-900/10 cursor-pointer"
+                              >
+                                <Plus className="w-4 h-4" />
+                               <span>Add Exercise Set</span>
+                              </button>
+                            </div>
+                          )}
+
+                          {activeSubTab === 'insights' && (
+                            <div className="space-y-4">
+                              <div className="bg-[#0c0d19]/40 border border-dark-border rounded-2xl p-4 flex justify-between items-center">
+                                <div>
+                                  <span className="text-[10px] text-zinc-500 font-bold uppercase block">Est. 1-Rep Max</span>
+                                  <span className="text-xl font-display font-black text-brand-secondary mt-1 block">{maxHistorical1RM} kg</span>
+                                </div>
+                                
+                                <div className="text-right">
+                                  <span className="text-[10px] text-zinc-500 font-bold uppercase block">Peak Session Vol</span>
+                                  <span className="text-sm font-mono font-bold text-white mt-1 block">
+                                    {Math.round(exercise.sets.reduce((sum, s) => sum + (s.completed ? s.weight * s.reps : 0), 0))} kg
                                   </span>
                                 </div>
-                              ))}
-                            </div>
-                          </div>
+                              </div>
 
-                           {/* Mini SVG progression chart */}
-                           {historicalDataPoints.length > 1 && (
-                             <div className="space-y-1">
-                               <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-1">Historical Max progression</h4>
-                               <div className="bg-[#0c0d19]/40 border border-dark-border p-3 rounded-2xl">
-                                 <svg viewBox="0 0 400 100" className="w-full h-auto overflow-visible">
-                                   <path
-                                     d={historicalDataPoints.map((pt, i) => {
-                                       const x = 30 + (i * 340) / (historicalDataPoints.length - 1);
-                                       const y = 80 - ((pt.val - 40) / 160) * 60;
-                                       return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
-                                     }).join(' ')}
-                                     fill="none"
-                                     stroke="#06b6d4"
-                                     strokeWidth="2.5"
-                                     strokeLinecap="round"
-                                   />
-                                   {historicalDataPoints.map((pt, i) => {
-                                     const x = 30 + (i * 340) / (historicalDataPoints.length - 1);
-                                     const y = 80 - ((pt.val - 40) / 160) * 60;
-                                     return (
-                                       <g key={i}>
-                                         <circle cx={x} cy={y} r="3.5" fill="#020202" stroke="#06b6d4" strokeWidth="2" />
-                                         <text x={x} y={y - 8} textAnchor="middle" fill="#ffffff" fontSize="7" fontWeight="bold" className="font-mono">{pt.val}kg</text>
-                                         <text x={x} y="95" textAnchor="middle" fill="#71717a" fontSize="6" fontWeight="bold">{pt.date}</text>
-                                       </g>
-                                     );
-                                   })}
-                                 </svg>
-                               </div>
-                             </div>
-                           )}
-                        </div>
-                      )}
-
-                      {activeSubTab === 'guide' && (
-                        <div className="p-4 bg-[#0c0d19]/80 border border-dark-border rounded-2xl flex items-start space-x-3">
-                          <BookOpen className="w-5 h-5 text-brand-secondary flex-shrink-0 mt-0.5" />
-                          <div>
-                            <span className="text-[10px] text-brand-secondary uppercase font-bold block tracking-wider">EXECUTION INSTRUCTION</span>
-                            <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">{guideText}</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {activeSubTab === 'history' && (
-                        <div className="space-y-2">
-                          <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-1">Past Logs (Last 4 sessions)</h4>
-                          
-                          {(() => {
-                            const specificHistory = workoutsHistory
-                              .filter(w => w.exercises.some(e => e.id === exercise.id))
-                              .sort((a, b) => new Date(b.date) - new Date(a.date))
-                              .slice(0, 4);
-
-                            if (specificHistory.length === 0) {
-                              return (
-                                <div className="py-6 border border-dashed border-zinc-800 rounded-2xl text-center text-xs text-zinc-600 bg-zinc-900/10">
-                                  No past logs found in database. Complete this workout to log telemetry.
+                              {/* %1RM Progressive Overload Table */}
+                              <div className="space-y-2">
+                                <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-1">Progressive Overload Target Table</h4>
+                                <div className="grid grid-cols-5 gap-2 text-center text-[10px] font-mono">
+                                  {[100, 90, 85, 80, 75].map((pct) => (
+                                    <div key={pct} className="bg-zinc-950/40 border border-dark-border p-2 rounded-xl">
+                                      <span className="text-[9px] text-zinc-500 font-bold block">{pct}% 1RM</span>
+                                      <span className="text-xs font-bold text-zinc-200 mt-1 block">{Math.round(maxHistorical1RM * (pct / 100))} kg</span>
+                                      <span className="text-[8px] text-zinc-600 block mt-0.5">
+                                        {pct === 100 ? '1 rep' : pct === 90 ? '4-5 reps' : pct === 85 ? '6-7 reps' : pct === 80 ? '8-10 reps' : '10-12 reps'}
+                                      </span>
+                                    </div>
+                                  ))}
                                 </div>
-                              );
-                            }
+                              </div>
 
-                            return (
-                              <div className="space-y-1.5">
-                                {specificHistory.map((hWorkout) => {
-                                  const hEx = hWorkout.exercises.find(e => e.id === exercise.id);
+                               {/* Mini SVG progression chart */}
+                               {historicalDataPoints.length > 1 && (
+                                 <div className="space-y-1">
+                                   <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-1">Historical Max progression</h4>
+                                   <div className="bg-[#0c0d19]/40 border border-dark-border p-3 rounded-2xl">
+                                     <svg viewBox="0 0 400 100" className="w-full h-auto overflow-visible">
+                                       <path
+                                         d={historicalDataPoints.map((pt, i) => {
+                                           const x = 30 + (i * 340) / (historicalDataPoints.length - 1);
+                                           const y = 80 - ((pt.val - 40) / 160) * 60;
+                                           return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+                                         }).join(' ')}
+                                         fill="none"
+                                         stroke="#06b6d4"
+                                         strokeWidth="2.5"
+                                         strokeLinecap="round"
+                                       />
+                                       {historicalDataPoints.map((pt, i) => {
+                                         const x = 30 + (i * 340) / (historicalDataPoints.length - 1);
+                                         const y = 80 - ((pt.val - 40) / 160) * 60;
+                                         return (
+                                           <g key={i}>
+                                             <circle cx={x} cy={y} r="3.5" fill="#020202" stroke="#06b6d4" strokeWidth="2" />
+                                             <text x={x} y={y - 8} textAnchor="middle" fill="#ffffff" fontSize="7" fontWeight="bold" className="font-mono">{pt.val}kg</text>
+                                             <text x={x} y="95" textAnchor="middle" fill="#71717a" fontSize="6" fontWeight="bold">{pt.date}</text>
+                                           </g>
+                                         );
+                                       })}
+                                     </svg>
+                                   </div>
+                                 </div>
+                               )}
+                            </div>
+                          )}
+
+                          {activeSubTab === 'guide' && (
+                            <div className="p-4 bg-[#0c0d19]/80 border border-dark-border rounded-2xl flex items-start space-x-3">
+                              <BookOpen className="w-5 h-5 text-brand-secondary flex-shrink-0 mt-0.5" />
+                              <div>
+                                <span className="text-[10px] text-brand-secondary uppercase font-bold block tracking-wider">EXECUTION INSTRUCTION</span>
+                                <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">{guideText}</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {activeSubTab === 'history' && (
+                            <div className="space-y-2">
+                              <h4 className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest px-1">Past Logs (Last 4 sessions)</h4>
+                              
+                              {(() => {
+                                const specificHistory = workoutsHistory
+                                  .filter(w => w.exercises.some(e => e.id === exercise.id))
+                                  .sort((a, b) => new Date(b.date) - new Date(a.date))
+                                  .slice(0, 4);
+
+                                if (specificHistory.length === 0) {
                                   return (
-                                    <div key={hWorkout.id} className="bg-zinc-950/40 border border-dark-border p-3 rounded-2xl flex justify-between items-center font-mono">
-                                      <div>
-                                        <span className="text-[9px] text-brand-secondary font-bold block uppercase">
-                                          {new Date(hWorkout.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                                        </span>
-                                        <span className="text-[10px] text-zinc-400 block mt-0.5">{hWorkout.name}</span>
-                                      </div>
-                                      <div className="flex space-x-2">
-                                        {hEx.sets.map((s, sIdx) => (
-                                          <span key={sIdx} className="text-[9px] bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded text-zinc-300">
-                                            {s.weight}kg x{s.reps}
-                                          </span>
-                                        ))}
-                                      </div>
+                                    <div className="py-6 border border-dashed border-zinc-800 rounded-2xl text-center text-xs text-zinc-600 bg-zinc-900/10">
+                                      No past logs found in database. Complete this workout to log telemetry.
                                     </div>
                                   );
-                                })}
-                              </div>
-                            );
-                          })()}
-                        </div>
+                                }
+
+                                return (
+                                  <div className="space-y-1.5">
+                                    {specificHistory.map((hWorkout) => {
+                                      const hEx = hWorkout.exercises.find(e => e.id === exercise.id);
+                                      return (
+                                        <div key={hWorkout.id} className="bg-zinc-950/40 border border-dark-border p-3 rounded-2xl flex justify-between items-center font-mono">
+                                          <div>
+                                            <span className="text-[9px] text-brand-secondary font-bold block uppercase">
+                                              {new Date(hWorkout.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                            </span>
+                                            <span className="text-[10px] text-zinc-400 block mt-0.5">{hWorkout.name}</span>
+                                          </div>
+                                          <div className="flex space-x-2">
+                                            {hEx.sets.map((s, sIdx) => (
+                                              <span key={sIdx} className="text-[9px] bg-zinc-900 border border-zinc-800 px-1.5 py-0.5 rounded text-zinc-300">
+                                                {s.weight}kg x{s.reps}
+                                              </span>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                );
+                              })()}
+                            </div>
+                          )}
+                        </>
                       )}
 
                     </div>
@@ -1270,6 +1369,83 @@ export default function App() {
         </div>
       )}
 
+      {/* Focus Mode Rest Timer Overlay */}
+      {isResting && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-lg z-50 flex items-center justify-center p-4">
+          <div className="glass-panel-glow border-brand-secondary/40 rounded-3xl w-full max-w-sm p-6 flex flex-col items-center justify-center text-center space-y-6 animate-float">
+            <div>
+              <span className="text-[9px] text-brand-secondary font-mono font-bold tracking-widest block uppercase mb-1">RECOVERY SEQUENCE ACTIVE</span>
+              <h2 className="text-lg font-display font-black text-white tracking-wide">ATP SYNTHESIS REST DIAL</h2>
+            </div>
+
+            {/* Large SVG Countdown */}
+            <div className="relative w-44 h-44 flex items-center justify-center">
+              <svg className="w-full h-full transform -rotate-90">
+                <circle cx="88" cy="88" r="55" stroke="rgba(255,255,255,0.015)" strokeWidth="6" fill="transparent" />
+                <circle 
+                  cx="88" cy="88" r="55" 
+                  stroke="#06b6d4" 
+                  strokeWidth="6" fill="transparent" 
+                  strokeDasharray={345.5} 
+                  strokeDashoffset={345.5 - (restTimer / initialRestDuration) * 345.5} 
+                  strokeLinecap="round"
+                  className="transition-all duration-1000 ease-linear"
+                  style={{ filter: 'drop-shadow(0 0 10px rgba(6, 182, 212, 0.45))' }}
+                />
+              </svg>
+              
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-4.5xl font-display font-black text-white tracking-tighter">
+                  {restTimer}
+                </span>
+                <span className="text-[8px] font-bold text-zinc-500 uppercase tracking-wider font-mono">SECONDS REMAINING</span>
+              </div>
+            </div>
+
+            {/* Presets and actions */}
+            <div className="w-full space-y-4">
+              <div className="grid grid-cols-4 gap-2">
+                {[30, 60, 90, 120].map(sec => (
+                  <button
+                    key={sec}
+                    onClick={() => {
+                      setInitialRestDuration(sec);
+                      setRestTimer(sec);
+                    }}
+                    className={`py-2 px-1 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-colors border cursor-pointer ${
+                      initialRestDuration === sec
+                        ? 'bg-brand-secondary/15 border-brand-secondary/30 text-brand-secondary shadow-[0_0_10px_rgba(6,182,212,0.1)]'
+                        : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                    }`}
+                  >
+                    {sec}s
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex space-x-2">
+                <button 
+                  onClick={() => setIsResting(false)}
+                  className="flex-1 py-3 bg-zinc-950 hover:bg-zinc-900 text-brand-accent border border-brand-accent/40 hover:border-brand-accent font-bold text-xs uppercase tracking-wider rounded-2xl cursor-pointer shadow-lg shadow-brand-accent/5 transition-premium"
+                >
+                  Skip Rest
+                </button>
+
+                <button 
+                  onClick={() => {
+                    setRestTimer(initialRestDuration);
+                  }}
+                  className="px-4 py-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 rounded-2xl cursor-pointer transition-colors"
+                  title="Reset Interval"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal: Append Exercise */}
       {showAddExModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
@@ -1315,7 +1491,7 @@ export default function App() {
 
       {/* Modal: Celebration */}
       {showCelebration && completedWorkoutSummary && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto font-sans">
           
           <div className="glass-panel-glow rounded-3xl w-full max-w-xl p-6 flex flex-col space-y-5 my-8">
             
