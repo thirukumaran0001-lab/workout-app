@@ -39,7 +39,7 @@ function BackgroundParticles() {
         x: Math.random() * width,
         y: Math.random() * height,
         radius: Math.random() * 1.5 + 0.5,
-        color: Math.random() > 0.5 ? 'rgba(139, 92, 246, 0.12)' : 'rgba(6, 182, 212, 0.12)',
+        color: Math.random() > 0.5 ? 'rgba(255, 255, 255, 0.08)' : 'rgba(203, 213, 225, 0.08)',
         vx: (Math.random() - 0.5) * 0.2,
         vy: (Math.random() - 0.5) * 0.2,
       });
@@ -1086,7 +1086,7 @@ export default function App() {
                                            return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
                                          }).join(' ')}
                                          fill="none"
-                                         stroke="#06b6d4"
+                                         stroke="#cbd5e1"
                                          strokeWidth="2.5"
                                          strokeLinecap="round"
                                        />
@@ -1095,7 +1095,7 @@ export default function App() {
                                          const y = 80 - ((pt.val - 40) / 160) * 60;
                                          return (
                                            <g key={i}>
-                                             <circle cx={x} cy={y} r="3.5" fill="#020202" stroke="#06b6d4" strokeWidth="2" />
+                                             <circle cx={x} cy={y} r="3.5" fill="#020202" stroke="#cbd5e1" strokeWidth="2" />
                                              <text x={x} y={y - 8} textAnchor="middle" fill="#ffffff" fontSize="7" fontWeight="bold" className="font-mono">{pt.val}kg</text>
                                              <text x={x} y="95" textAnchor="middle" fill="#71717a" fontSize="6" fontWeight="bold">{pt.date}</text>
                                            </g>
@@ -1207,13 +1207,13 @@ export default function App() {
                       <circle cx="72" cy="72" r="40" stroke="rgba(255,255,255,0.02)" strokeWidth="6" fill="transparent" />
                       <circle 
                         cx="72" cy="72" r="40" 
-                        stroke={isResting ? '#06b6d4' : 'rgba(255,255,255,0.06)'} 
+                        stroke={isResting ? '#ffffff' : 'rgba(255,255,255,0.06)'} 
                         strokeWidth="6" fill="transparent" 
                         strokeDasharray={strokeDash} 
                         strokeDashoffset={strokeOffset} 
                         strokeLinecap="round"
                         className="transition-all duration-1000 ease-linear"
-                        style={{ filter: isResting ? 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.35))' : 'none' }}
+                        style={{ filter: isResting ? 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.25))' : 'none' }}
                       />
                     </svg>
                     
@@ -1297,11 +1297,11 @@ export default function App() {
                       <path
                         d={getHeartbeatPath()}
                         fill="none"
-                        stroke="#f43f5e"
+                        stroke="#ffffff"
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        className="drop-shadow-[0_0_4px_rgba(244,63,94,0.4)]"
+                        className="drop-shadow-[0_0_4px_rgba(255,255,255,0.4)]"
                       />
                     </svg>
                   </div>
@@ -1384,13 +1384,13 @@ export default function App() {
                 <circle cx="88" cy="88" r="55" stroke="rgba(255,255,255,0.015)" strokeWidth="6" fill="transparent" />
                 <circle 
                   cx="88" cy="88" r="55" 
-                  stroke="#06b6d4" 
+                  stroke="#ffffff" 
                   strokeWidth="6" fill="transparent" 
                   strokeDasharray={345.5} 
                   strokeDashoffset={345.5 - (restTimer / initialRestDuration) * 345.5} 
                   strokeLinecap="round"
                   className="transition-all duration-1000 ease-linear"
-                  style={{ filter: 'drop-shadow(0 0 10px rgba(6, 182, 212, 0.45))' }}
+                  style={{ filter: 'drop-shadow(0 0 10px rgba(255, 255, 255, 0.3))' }}
                 />
               </svg>
               
@@ -1414,7 +1414,7 @@ export default function App() {
                     }}
                     className={`py-2 px-1 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-colors border cursor-pointer ${
                       initialRestDuration === sec
-                        ? 'bg-brand-secondary/15 border-brand-secondary/30 text-brand-secondary shadow-[0_0_10px_rgba(6,182,212,0.1)]'
+                        ? 'bg-brand-secondary/15 border-brand-secondary/30 text-brand-secondary shadow-[0_0_10px_rgba(255,255,255,0.05)]'
                         : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
                     }`}
                   >
@@ -1590,8 +1590,8 @@ export default function App() {
                     <svg viewBox="0 0 200 80" className="w-full h-full overflow-visible">
                       <defs>
                         <linearGradient id="hrGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.12" />
-                          <stop offset="100%" stopColor="#f43f5e" stopOpacity="0" />
+                          <stop offset="0%" stopColor="#cbd5e1" stopOpacity="0.12" />
+                          <stop offset="100%" stopColor="#cbd5e1" stopOpacity="0" />
                         </linearGradient>
                       </defs>
                       
@@ -1607,7 +1607,7 @@ export default function App() {
                           }).join(' ');
                         })()}
                         fill="none"
-                        stroke="#f43f5e"
+                        stroke="#cbd5e1"
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -1626,7 +1626,7 @@ export default function App() {
                         fill="url(#hrGrad)"
                       />
                       
-                      <text x="5" y="10" fill="#f43f5e" fontSize="6" fontWeight="bold" className="font-mono">
+                      <text x="5" y="10" fill="#cbd5e1" fontSize="6" fontWeight="bold" className="font-mono">
                         Max: {Math.max(...completedWorkoutSummary.heartRates)} bpm
                       </text>
                       <text x="5" y="76" fill="#71717a" fontSize="6" fontWeight="bold" className="font-mono">
